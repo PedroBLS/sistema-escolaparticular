@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Ambientes virtuais
+venv/
+env/
+.venv/
+ENV/
+
+# Banco de dados
+*.db
+*.sqlite3
+gestax_educacional.db
+
+# Variáveis de ambiente
+.env
+.env.local
+.secret
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
