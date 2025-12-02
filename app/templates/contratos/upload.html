@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}{% if contrato %}Editar{% else %}Novo{% endif %} Contrato{% endblock %}
+{% block header %}{% if contrato %}Editar{% else %}Cadastrar{% endif %} Contrato{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" 
+              action="{% if contrato %}{{ url_for('main.editar_contrato', id=contrato.id) }}{% else %}{{ url_for('main.upload_contrato') }}{% endif %}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="tipo_vinculo" class="form-label">Tipo de Vínculo</label>
+                        <select class="form-select" id="tipo_vinculo" name="tipo_vinculo" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="aluno" {% if contrato and contrato.aluno_id %}selected{% endif %}>Aluno</option>
+                            <option value="professor" {% if contrato and contrato.professor_id %}selected{% endif %}>Professor</option>
+                        </select>
+                    </div>
+
+                    {% if contrato and contrato.aluno_id %}
+                    <div class="mb-3" id="aluno-container" style="display: block;">
+                    {% else %}
+                    <div class="mb-3" id="aluno-container" style="display: none;">
+                    {% endif %}
+                        <label for="aluno_id" class="form-label">Aluno</label>
+                        <select class="form-select" id="aluno_id" name="aluno_id">
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos %}
+                            <option value="{{ aluno.id }}" {% if contrato and contrato.aluno_id == aluno.id %}selected{% endif %}>
+                                {{ aluno.nome }} - {{ aluno.plano_adquirido }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    {% if contrato and contrato.professor_id %}
+                    <div class="mb-3" id="professor-container" style="display: block;">
+                    {% else %}
+                    <div class="mb-3" id="professor-container" style="display: none;">
+                    {% endif %}
+                        <label for="professor_id" class="form-label">Professor</label>
+                        <select class="form-select" id="professor_id" name="professor_id">
+                            <option value="">Selecione um professor</option>
+                            {% for professor in professores %}
+                            <option value="{{ professor.id }}" {% if contrato and contrato.professor_id == professor.id %}selected{% endif %}>
+                                {{ professor.nome }} - {{ professor.disciplina }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="tipo_plano" class="form-label">Tipo de Plano/Contrato</label>
+                        <select class="form-select" id="tipo_plano" name="tipo_plano" required>
+                            <option value="">Selecione o tipo</option>
+                            <option value="Professor" {% if contrato and contrato.tipo_plano == 'Professor' %}selected{% endif %}>Contrato Professor</option>
+                            <option value="Básico" {% if contrato and contrato.tipo_plano == 'Básico' %}selected{% endif %}>Plano Básico</option>
+                            <option value="Intermediário" {% if contrato and contrato.tipo_plano == 'Intermediário' %}selected{% endif %}>Plano Intermediário</option>
+                            <option value="Avançado" {% if contrato and contrato.tipo_plano == 'Avançado' %}selected{% endif %}>Plano Avançado</option>
+                            <option value="Premium" {% if contrato and contrato.tipo_plano == 'Premium' %}selected{% endif %}>Plano Premium</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="validade" class="form-label">Validade</label>
+                        <input type="date" class="form-control" id="validade" name="validade" 
+                               value="{% if contrato %}{{ contrato.validade.strftime('%Y-%m-%d') }}{% endif %}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="arquivo" class="form-label">Arquivo do Contrato</label>
+                        <input class="form-control" type="file" id="arquivo" name="arquivo" {% if not contrato %}required{% endif %}>
+                        {% if contrato and contrato.arquivo %}
+                        <small class="text-muted">Arquivo atual: {{ contrato.arquivo }}</small>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" name="observacoes" rows="3">{% if contrato %}{{ contrato.observacoes }}{% endif %}</textarea>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.listar_contratos') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {% if contrato %}Atualizar{% else %}Salvar{% endif %} Contrato
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipoVinculo = document.getElementById('tipo_vinculo');
+    const alunoContainer = document.getElementById('aluno-container');
+    const professorContainer = document.getElementById('professor-container');
+    const alunoSelect = document.getElementById('aluno_id');
+    const professorSelect = document.getElementById('professor_id');
+
+    // Mostrar/ocultar campos com base no tipo de vínculo
+    tipoVinculo.addEventListener('change', function() {
+        if (this.value === 'aluno') {
+            alunoContainer.style.display = 'block';
+            professorContainer.style.display = 'none';
+            professorSelect.value = '';
+        } else if (this.value === 'professor') {
+            alunoContainer.style.display = 'none';
+            professorContainer.style.display = 'block';
+            alunoSelect.value = '';
+        } else {
+            alunoContainer.style.display = 'none';
+            professorContainer.style.display = 'none';
+            alunoSelect.value = '';
+            professorSelect.value = '';
+        }
+    });
+
+    // Validação para garantir que pelo menos um vínculo esteja selecionado
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!alunoSelect.value && !professorSelect.value) {
+            e.preventDefault();
+            alert('Selecione um aluno ou professor para vincular o contrato!');
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhes do Aluno - {{ aluno.nome }}{% endblock %}
+{% block header %}Detalhes do Aluno{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-4">
+            <h4>{{ aluno.nome }}</h4>
+            <a href="{{ url_for('alunos.listar_alunos') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+            <a href="{{ url_for('main.relatorio_aluno_pdf', aluno_id=aluno.id) }}" 
+                class="btn btn-primary" 
+                target="_blank">
+                <i class="fas fa-file-pdf"></i> Gerar Relatório PDF
+            </a>
+        </div>
+        <form method="GET" action="{{ url_for('main.relatorio_aluno_pdf', aluno_id=aluno.id) }}" 
+      target="_blank" class="d-inline ms-2">
+    <div class="input-group">
+        <input type="date" name="data_inicio" class="form-control form-control-sm" 
+               placeholder="Data início">
+        <input type="date" name="data_fim" class="form-control form-control-sm" 
+               placeholder="Data fim">
+        <button type="submit" class="btn btn-primary btn-sm">
+            <i class="fas fa-filter"></i> Filtrar PDF
+        </button>
+    </div>
+</form>
+        <div class="row">
+            <!-- Coluna 1: Dados Pessoais -->
+<div class="col-md-6">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Dados Pessoais</h5>
+        </div>
+        <div class="card-body">
+            <dl class="row">
+                <dt class="col-sm-4">Nome Completo:</dt>
+                <dd class="col-sm-8">{{ aluno.nome }}</dd>
+
+                <dt class="col-sm-4">Responsável:</dt>
+                <dd class="col-sm-8">{{ aluno.nome_responsavel or 'Não informado' }}</dd>
+
+                <dt class="col-sm-4">CPF:</dt>
+                <dd class="col-sm-8">
+                    {% if aluno.cpf %}
+                        {{ aluno.cpf|format_cpf }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">RG:</dt>
+                <dd class="col-sm-8">
+                    {% if aluno.rg %}
+                        {{ aluno.rg|format_rg }}
+                    {% else %}
+                        Não informado
+                    {% endif %}
+                </dd>
+
+                <dt class="col-sm-4">Estado Civil:</dt>
+                <dd class="col-sm-8">{{ aluno.estado_civil or 'Não informado' }}</dd>
+
+                <dt class="col-sm-4">Nacionalidade:</dt>
+                <dd class="col-sm-8">{{ aluno.nacionalidade or 'Não informada' }}</dd>
+            </dl>
+        </div>
+    </div>
+</div>
+
+            <!-- Coluna 2: Contato e Plano -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Contato e Plano</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">E-mail:</dt>
+                            <dd class="col-sm-8">{{ aluno.user.email }}</dd>
+
+                            <dt class="col-sm-4">Telefone:</dt>
+                            <dd class="col-sm-8">{{ aluno.telefone|format_telefone }}</dd>
+
+                            <dt class="col-sm-4">Endereço:</dt>
+                            <dd class="col-sm-8">{{ aluno.endereco }}</dd>
+
+                            <dt class="col-sm-4">Localização:</dt>
+                            <dd class="col-sm-8">
+                                {% if aluno.mora_plano_piloto %}
+                                    <span class="badge bg-success">Plano Piloto</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Fora do PP</span>
+                                {% endif %}
+                            </dd>
+
+                            <dt class="col-sm-4">Série/Ano:</dt>
+                            <dd class="col-sm-8">{{ aluno.serie }}</dd>
+
+                            <dt class="col-sm-4">Plano:</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-{{ 'success' if aluno.plano_adquirido == 'Premium' else 'primary' if aluno.plano_adquirido == 'Avançado' else 'warning' if aluno.plano_adquirido == 'Intermediário' else 'info' }}">
+                                    {{ aluno.plano_adquirido }}
+                                </span>
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('main.editar_aluno', id=aluno.id) }}" class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete{{ aluno.id }}">
+                <i class="bi bi-trash"></i> Excluir
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="confirmDelete{{ aluno.id }}" tabindex="-1" 
+     aria-labelledby="confirmDeleteLabel{{ aluno.id }}" aria-hidden="true"
+     data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="confirmDeleteLabel{{ aluno.id }}">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o aluno <strong>{{ aluno.nome }}</strong>?</p>
+                <p class="text-danger"><small>Esta ação não pode ser desfeita.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <form action="{{ url_for('main.excluir_aluno', id=aluno.id) }}" method="POST" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

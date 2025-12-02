@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+        .logo {
+            height: 80px;
+        }
+        .titulo {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .total {
+            font-weight: bold;
+            text-align: right;
+            margin-top: 10px;
+        }
+        .footer {
+            margin-top: 30px;
+            text-align: right;
+            font-size: 10px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        {% if logo_path %}
+        <img src="file://{{ logo_path }}" class="logo" alt="Logo da Empresa">
+        {% endif %}
+        <div class="info-empresa">
+            <h2>{{ current_user.nome }}</h2>
+            <p>CNPJ: XX.XXX.XXX/XXXX-XX</p>
+            <p>Endereço: Rua Exemplo, 123</p>
+        </div>
+    </div>
+    {% if not aulas %}
+    <div class="alert alert-warning">
+        Nenhuma aula encontrada no período selecionado.
+    </div>
+    {% else %}
+    <div class="titulo">Relatório de Aulas - {{ aluno.nome }}</div>
+    <p>Data: {{ data_emissao }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Data</th>
+                <th>Professor</th>
+                <th>Duração (min)</th>
+                <th>Valor (R$)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aula in aulas %}
+            <tr>
+                <td>{{ aula.data_hora.strftime('%d/%m/%Y') }}</td>
+                <td>{{ aula.professor.nome }}</td>
+                <td>{{ aula.duracao }}</td>
+                <td>{{ "%.2f"|format(aula.valor_aula) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="total">
+        <p>Total de Aulas: {{ total_aulas }}</p>
+        <p>Total de Horas: {{ "%.1f"|format(total_horas) }}h</p>
+        <p>Valor Total Devido: R$ {{ "%.2f"|format(total_devido) }}</p>
+    </div>
+
+    <div class="footer">
+        Emitido por {{ current_user.nome }} em {{ data_emissao }}
+    </div>
+</body>
+</html>

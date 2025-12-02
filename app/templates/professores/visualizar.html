@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block title %}Detalhes do Professor - {{ professor.nome }}{% endblock %}
+{% block header %}Detalhes do Professor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-4">
+            <h4>{{ professor.nome }}</h4>
+            <a href="{{ url_for('main.listar_professores') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Voltar
+            </a>
+        </div>
+
+        <div class="row">
+            <!-- Coluna Esquerda: Dados Pessoais -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Dados Pessoais</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Nome Completo:</dt>
+                            <dd class="col-sm-8">{{ professor.nome }}</dd>
+
+                            <dt class="col-sm-4">RG:</dt>
+                            <dd class="col-sm-8">{{ professor.rg }}</dd>
+
+                            <dt class="col-sm-4">CPF:</dt>
+                            <dd class="col-sm-8">{{ professor.cpf }}</dd>
+
+                            <dt class="col-sm-4">Estado Civil:</dt>
+                            <dd class="col-sm-8">{{ professor.estado_civil or 'Não informado' }}</dd>
+
+                            <dt class="col-sm-4">Nacionalidade:</dt>
+                            <dd class="col-sm-8">{{ professor.nacionalidade or 'Não informada' }}</dd>
+
+                            <dt class="col-sm-4">Endereço:</dt>
+                            <dd class="col-sm-8">{{ professor.endereco }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Dados Profissionais e Contato -->
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Dados Profissionais</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Disciplina:</dt>
+                            <dd class="col-sm-8">{{ professor.disciplina }}</dd>
+
+                            <dt class="col-sm-4">Valor por Hora:</dt>
+                            <dd class="col-sm-8">R$ {{ "%.2f"|format(professor.valor_hora) }}</dd>
+
+                            <dt class="col-sm-4">Disponibilidade:</dt>
+                            <dd class="col-sm-8">{{ professor.disponibilidade or 'Não informada' }}</dd>
+
+                            <dt class="col-sm-4">Tipo de Atendimento:</dt>
+                            <dd class="col-sm-8">
+                                {% if professor.tipo_atendimento %}
+                                    {% for tipo in professor.tipo_atendimento.split(',') %}
+                                        <span class="badge bg-{{ 'primary' if tipo == 'presencial' else 'success' if tipo == 'online' else 'warning' }}">
+                                            {{ tipo|capitalize }}
+                                        </span>
+                                    {% endfor %}
+                                {% else %}
+                                    Não informado
+                                {% endif %}
+                            </dd>
+                        </dl>
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Contato</h5>
+                    </div>
+                    <div class="card-body">
+                        <dl class="row">
+                            <dt class="col-sm-4">Telefone:</dt>
+                            <dd class="col-sm-8">{{ professor.telefone }}</dd>
+
+                            <dt class="col-sm-4">E-mail:</dt>
+                            <dd class="col-sm-8">{{ professor.user.email if professor.user else 'Não cadastrado' }}</dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+            <a href="{{ url_for('main.editar_professor', id=professor.id) }}" class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i> Editar
+            </a>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#confirmDelete">
+                <i class="bi bi-trash"></i> Excluir
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Exclusão -->
+<div class="modal fade" id="confirmDelete" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Confirmar Exclusão</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja excluir o professor <strong>{{ professor.nome }}</strong>?</p>
+                <p class="text-danger"><small>Esta ação não pode ser desfeita.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                </button>
+                <form action="{{ url_for('main.excluir_professor', id=professor.id) }}" method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmar Exclusão
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

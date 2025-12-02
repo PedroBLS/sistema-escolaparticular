@@ -1,0 +1,499 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-calendar-times text-warning me-2"></i>
+                    Vencimentos de Contratos
+                </h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="filtrarPeriodo('todos')">
+                        Todos
+                    </button>
+                    <button type="button" class="btn btn-outline-warning" onclick="filtrarPeriodo('vencidos')">
+                        Vencidos
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="filtrarPeriodo('30dias')">
+                        Próximos 30 dias
+                    </button>
+                    <button type="button" class="btn btn-outline-info" onclick="filtrarPeriodo('90dias')">
+                        Próximos 90 dias
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards de Resumo -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-danger">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Vencidos
+                            </h5>
+                            <h3 class="text-danger" id="total-vencidos">{{ contratos_vencidos|length }}</h3>
+                            <small class="text-muted">contratos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-warning">
+                                <i class="fas fa-clock"></i>
+                                Próximos 30 dias
+                            </h5>
+                            <h3 class="text-warning" id="total-30dias">{{ contratos_30_dias|length }}</h3>
+                            <small class="text-muted">contratos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-info">
+                                <i class="fas fa-calendar-check"></i>
+                                Próximos 90 dias
+                            </h5>
+                            <h3 class="text-info" id="total-90dias">{{ contratos_90_dias|length }}</h3>
+                            <small class="text-muted">contratos</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-success">
+                                <i class="fas fa-dollar-sign"></i>
+                                Valor Total
+                            </h5>
+                            <h3 class="text-success" id="valor-total">R$ {{ valor_total_formatado }}</h3>
+                            <small class="text-muted">em contratos ativos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtros Avançados -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Filtros Avançados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <label for="filtro-responsavel" class="form-label">Responsável</label>
+                            <select class="form-select" id="filtro-responsavel" onchange="aplicarFiltros()">
+                                <option value="">Todos os responsáveis</option>
+                                {% for responsavel in responsaveis %}
+                                <option value="{{ responsavel.id }}">{{ responsavel.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtro-tipo" class="form-label">Tipo de Plano</label>
+                            <select class="form-select" id="filtro-tipo" onchange="aplicarFiltros()">
+                                <option value="">Todos os tipos</option>
+                                <option value="Aula Avulsa">Aula Avulsa</option>
+                                <option value="Pacote 10 aulas">Pacote 10 aulas</option>
+                                <option value="Pacote 20 aulas">Pacote 20 aulas</option>
+                                <option value="Aula em Grupo">Aula em Grupo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtro-data-inicio" class="form-label">Data Início</label>
+                            <input type="date" class="form-control" id="filtro-data-inicio" onchange="aplicarFiltros()">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="filtro-data-fim" class="form-label">Data Fim</label>
+                            <input type="date" class="form-control" id="filtro-data-fim" onchange="aplicarFiltros()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Contratos -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Lista de Contratos
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" id="tabela-contratos">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Responsável</th>
+                                    <th>Alunos</th>
+                                    <th>Tipo de Plano</th>
+                                    <th>Data Início</th>
+                                    <th>Validade</th>
+                                    <th>Dias Restantes</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody-contratos">
+                                {% for contrato in contratos %}
+                                <tr class="contrato-row" 
+                                    data-responsavel="{{ contrato.responsavel_id }}"
+                                    data-tipo="{{ contrato.tipo_plano }}"
+                                    data-inicio="{{ contrato.data_inicio }}"
+                                    data-validade="{{ contrato.validade }}"
+                                    data-dias="{{ contrato.dias_para_vencimento }}">
+                                    <td>
+                                        <span class="badge bg-secondary">#{{ contrato.id }}</span>
+                                    </td>
+                                    <td>
+                                        <strong>{{ contrato.responsavel.nome }}</strong><br>
+                                        <small class="text-muted">{{ contrato.responsavel.telefone }}</small>
+                                    </td>
+                                    <td>
+                                        {% for contrato_aluno in contrato.alunos %}
+                                        <span class="badge bg-info me-1">{{ contrato_aluno.aluno.nome }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ contrato.tipo_plano }}</span>
+                                    </td>
+                                    <td>{{ contrato.data_inicio.strftime('%d/%m/%Y') }}</td>
+                                    <td>{{ contrato.validade.strftime('%d/%m/%Y') }}</td>
+                                    <td>
+                                        {% if contrato.esta_vencido %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            Vencido há {{ contrato.dias_para_vencimento|abs }} dias
+                                        </span>
+                                        {% elif contrato.dias_para_vencimento <= 7 %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-clock"></i>
+                                            {{ contrato.dias_para_vencimento }} dias
+                                        </span>
+                                        {% elif contrato.dias_para_vencimento <= 30 %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-clock"></i>
+                                            {{ contrato.dias_para_vencimento }} dias
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i>
+                                            {{ contrato.dias_para_vencimento }} dias
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">R$ {{ "%.2f"|format(contrato.valor_total) }}</strong>
+                                    </td>
+                                    <td>
+                                        {% if contrato.status == 'ativo' %}
+                                        <span class="badge bg-success">Ativo</span>
+                                        {% elif contrato.status == 'vencido' %}
+                                        <span class="badge bg-danger">Vencido</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">{{ contrato.status|title }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <button type="button" class="btn btn-outline-primary" 
+                                                    onclick="visualizarContrato('{{ contrato.id }}')"
+                                                    title="Visualizar">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            {% if contrato.vence_em_30_dias or contrato.esta_vencido %}
+                                            <button type="button" class="btn btn-outline-success" 
+                                                    onclick="renovarContrato('{{ contrato.id }}')"
+                                                    title="Renovar">
+                                                <i class="fas fa-sync-alt"></i>
+                                            </button>
+                                            {% endif %}
+                                            <button type="button" class="btn btn-outline-warning" 
+                                                    onclick="editarContrato('{{ contrato.id }}')"
+                                                    title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" 
+                                                    onclick="enviarLembrete('{{ contrato.id }}')"
+                                                    title="Enviar Lembrete">
+                                                <i class="fas fa-bell"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Renovação de Contrato -->
+<div class="modal fade" id="modalRenovacao" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-sync-alt me-2"></i>
+                    Renovar Contrato
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-renovacao">
+                    <input type="hidden" id="contrato-id-renovacao">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="nova-data-inicio" class="form-label">Nova Data de Início</label>
+                            <input type="date" class="form-control" id="nova-data-inicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="nova-validade" class="form-label">Nova Validade</label>
+                            <input type="date" class="form-control" id="nova-validade" required>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label for="novo-tipo-plano" class="form-label">Tipo de Plano</label>
+                            <select class="form-select" id="novo-tipo-plano" required>
+                                <option value="">Selecione o tipo</option>
+                                <option value="Aula Avulsa">Aula Avulsa</option>
+                                <option value="Pacote 10 aulas">Pacote 10 aulas</option>
+                                <option value="Pacote 20 aulas">Pacote 20 aulas</option>
+                                <option value="Aula em Grupo">Aula em Grupo</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="novo-valor" class="form-label">Valor Total</label>
+                            <input type="number" class="form-control" id="novo-valor" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <label for="novas-observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="novas-observacoes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-success" onclick="confirmarRenovacao()">
+                    <i class="fas fa-check me-2"></i>
+                    Renovar Contrato
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+
+function filtrarPeriodo(periodo) {
+    const rows = document.querySelectorAll('.contrato-row');
+    const hoje = new Date();
+    
+    // Remover classe ativa de todos os botões
+    document.querySelectorAll('.btn-group .btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Adicionar classe ativa ao botão clicado
+    event.target.classList.add('active');
+    
+    rows.forEach(row => {
+        const diasRestantes = parseInt(row.dataset.dias);
+        let mostrar = false;
+        
+        switch(periodo) {
+            case 'todos':
+                mostrar = true;
+                break;
+            case 'vencidos':
+                mostrar = diasRestantes < 0;
+                break;
+            case '30dias':
+                mostrar = diasRestantes >= 0 && diasRestantes <= 30;
+                break;
+            case '90dias':
+                mostrar = diasRestantes >= 0 && diasRestantes <= 90;
+                break;
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+}
+
+function aplicarFiltros() {
+    const filtroResponsavel = document.getElementById('filtro-responsavel').value;
+    const filtroTipo = document.getElementById('filtro-tipo').value;
+    const filtroDataInicio = document.getElementById('filtro-data-inicio').value;
+    const filtroDataFim = document.getElementById('filtro-data-fim').value;
+    
+    const rows = document.querySelectorAll('.contrato-row');
+    
+    rows.forEach(row => {
+        let mostrar = true;
+        
+        if (filtroResponsavel && row.dataset.responsavel !== filtroResponsavel) {
+            mostrar = false;
+        }
+        
+        if (filtroTipo && row.dataset.tipo !== filtroTipo) {
+            mostrar = false;
+        }
+        
+        if (filtroDataInicio) {
+            const dataInicio = new Date(row.dataset.inicio);
+            const filtroInicio = new Date(filtroDataInicio);
+            if (dataInicio < filtroInicio) {
+                mostrar = false;
+            }
+        }
+        
+        if (filtroDataFim) {
+            const dataValidade = new Date(row.dataset.validade);
+            const filtroFim = new Date(filtroDataFim);
+            if (dataValidade > filtroFim) {
+                mostrar = false;
+            }
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+}
+
+function visualizarContrato(contratoId) {
+    window.open(`/contratos/${contratoId}/visualizar`, '_blank');
+}
+
+function renovarContrato(contratoId) {
+    document.getElementById('contrato-id-renovacao').value = contratoId;
+    
+    // Pré-preencher datas
+    const hoje = new Date();
+    const umAnoDepois = new Date();
+    umAnoDepois.setFullYear(umAnoDepois.getFullYear() + 1);
+    
+    document.getElementById('nova-data-inicio').value = hoje.toISOString().split('T')[0];
+    document.getElementById('nova-validade').value = umAnoDepois.toISOString().split('T')[0];
+    
+    const modal = new bootstrap.Modal(document.getElementById('modalRenovacao'));
+    modal.show();
+}
+
+function confirmarRenovacao() {
+    const form = document.getElementById('form-renovacao');
+    const formData = new FormData(form);
+    const contratoId = document.getElementById('contrato-id-renovacao').value;
+    
+    const dados = {
+        contrato_id: contratoId,
+        data_inicio: document.getElementById('nova-data-inicio').value,
+        validade: document.getElementById('nova-validade').value,
+        tipo_plano: document.getElementById('novo-tipo-plano').value,
+        valor_total: document.getElementById('novo-valor').value,
+        observacoes: document.getElementById('novas-observacoes').value
+    };
+    
+    fetch('/contratos/renovar', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dados)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Contrato renovado com sucesso!');
+            location.reload();
+        } else {
+            alert('Erro ao renovar contrato: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao renovar contrato');
+    });
+}
+
+function editarContrato(contratoId) {
+    window.location.href = `/contratos/${contratoId}/editar`;
+}
+
+function enviarLembrete(contratoId) {
+    if (confirm('Deseja enviar um lembrete de vencimento para este contrato?')) {
+        fetch(`/contratos/${contratoId}/lembrete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Lembrete enviado com sucesso!');
+            } else {
+                alert('Erro ao enviar lembrete: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao enviar lembrete');
+        });
+    }
+}
+
+// Atualizar valores automaticamente baseado no tipo de plano
+document.getElementById('novo-tipo-plano').addEventListener('change', function() {
+    const tipo = this.value;
+    const valorInput = document.getElementById('novo-valor');
+    const validadeInput = document.getElementById('nova-validade');
+    const dataInicio = new Date(document.getElementById('nova-data-inicio').value);
+    
+    switch(tipo) {
+        case 'Aula Avulsa':
+            valorInput.value = '100.00';
+            // Validade indeterminada para aula avulsa
+            break;
+        case 'Pacote 10 aulas':
+            valorInput.value = '950.00';
+            if (dataInicio) {
+                const novaValidade = new Date(dataInicio);
+                novaValidade.setMonth(novaValidade.getMonth() + 6);
+                validadeInput.value = novaValidade.toISOString().split('T')[0];
+            }
+            break;
+        case 'Pacote 20 aulas':
+            valorInput.value = '1800.00';
+            if (dataInicio) {
+                const novaValidade = new Date(dataInicio);
+                novaValidade.setFullYear(novaValidade.getFullYear() + 1);
+                validadeInput.value = novaValidade.toISOString().split('T')[0];
+            }
+            break;
+        case 'Aula em Grupo':
+            valorInput.value = '80.00';
+            break;
+    }
+});
+</script>
+{% endblock %}

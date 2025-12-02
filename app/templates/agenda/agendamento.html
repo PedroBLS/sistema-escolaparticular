@@ -1,0 +1,305 @@
+{% extends "base.html" %}
+
+{% block title %}{% if aula %}Editar{% else %}Novo{% endif %} Agendamento{% endblock %}
+{% block header %}{% if aula %}Editar{% else %}Novo{% endif %} Agendamento{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{% if aula %}{{ url_for('main.editar_aula', id=aula.id) }}{% else %}{{ url_for('main.agendar_aula') }}{% endif %}">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="aluno_id" class="form-label">Aluno</label>
+                        <select class="form-select" id="aluno_id" name="aluno_id" required>
+                            <option value="">Selecione um aluno</option>
+                            {% for aluno in alunos %}
+                            <option value="{{ aluno.id }}" {% if aula and aula.aluno_id == aluno.id %}selected{% endif %}>
+                                {{ aluno.nome }} - {{ aluno.plano_adquirido }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="professor_id" class="form-label">Professor</label>
+                        <select class="form-select" id="professor_id" name="professor_id" required>
+                            <option value="">Selecione um professor</option>
+                            {% for professor in professores %}
+                            <option value="{{ professor.id }}" {% if aula and aula.professor_id == professor.id %}selected{% endif %}>
+                                {{ professor.nome }} - {{ professor.disciplina }} (R$ {{ "%.2f"|format(professor.valor_hora) }}/h)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="data_hora" class="form-label">Data e Hora</label>
+                        <input type="datetime-local" class="form-control" id="data_hora" name="data_hora" 
+                               value="{% if aula %}{{ aula.data_hora.strftime('%Y-%m-%dT%H:%M') }}{% endif %}" required>
+                    </div>
+
+                    <!-- Seção para agendamento recorrente -->
+                    <div class="mb-3" id="recorrenciaContainer" {% if aula %}style="display: none;"{% endif %}>
+                        <label class="form-label">Tipo de Agendamento</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_agendamento" id="agendamento_unico" value="unico" {% if not aula or not aula.recorrente %}checked{% endif %}>
+                            <label class="form-check-label" for="agendamento_unico">
+                                Aula única
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="tipo_agendamento" id="agendamento_recorrente" value="recorrente" {% if aula and aula.recorrente %}checked{% endif %}>
+                            <label class="form-check-label" for="agendamento_recorrente">
+                                Aula recorrente
+                            </label>
+                        </div>
+
+                        <div id="opcoesRecorrencia" class="mt-3 {% if aula and aula.recorrente %}d-block{% else %}d-none{% endif %}">
+                            <div class="mb-3">
+                                <label class="form-label">Repetir a cada:</label>
+                                <select class="form-select" id="frequencia" name="frequencia">
+                                    <option value="1" {% if aula and aula.frequencia == 1 %}selected{% endif %}>1 semana</option>
+                                    <option value="2" {% if aula and aula.frequencia == 2 %}selected{% endif %}>2 semanas</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Dias da semana:</label>
+                                {% set dias_aula = aula.dias_semana.split(',') if aula and aula.dias_semana else [] %}
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="domingo" name="dias_semana" value="0" {% if '0' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="domingo">Domingo</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="segunda" name="dias_semana" value="1" {% if '1' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="segunda">Segunda-feira</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="terca" name="dias_semana" value="2" {% if '2' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="terca">Terça-feira</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="quarta" name="dias_semana" value="3" {% if '3' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="quarta">Quarta-feira</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="quinta" name="dias_semana" value="4" {% if '4' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="quinta">Quinta-feira</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="sexta" name="dias_semana" value="5" {% if '5' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="sexta">Sexta-feira</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input dia-semana" type="checkbox" id="sabado" name="dias_semana" value="6" {% if '6' in dias_aula %}checked{% endif %}>
+                                    <label class="form-check-label" for="sabado">Sábado</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="data_fim" class="form-label">Data final:</label>
+                                <input type="date" class="form-control" id="data_fim" name="data_fim" 
+                                       min="{% if aula %}{{ aula.data_hora.strftime('%Y-%m-%d') }}{% else %}{{ now.strftime('%Y-%m-%d') }}{% endif %}"
+                                       value="{% if aula and aula.data_fim %}{{ aula.data_fim.strftime('%Y-%m-%d') }}{% endif %}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label for="duracao" class="form-label">Duração (minutos)</label>
+                        <select class="form-select" id="duracao" name="duracao" required>
+                            <option value="30" {% if aula and aula.duracao == 30 %}selected{% endif %}>30 minutos</option>
+                            <option value="45" {% if aula and aula.duracao == 45 %}selected{% endif %}>45 minutos</option>
+                            <option value="60" {% if aula and aula.duracao == 60 %}selected{% endif %}>1 hora</option>
+                            <option value="90" {% if aula and aula.duracao == 90 %}selected{% endif %}>1 hora e 30 minutos</option>
+                            <option value="120" {% if aula and aula.duracao == 120 %}selected{% endif %}>2 horas</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="local" class="form-label">Local</label>
+                        <select class="form-select" id="local" name="local" required>
+                            <option value="presencial" {% if aula and aula.local == 'presencial' %}selected{% endif %}>Presencial (Espaço Ímpetus)</option>
+                            <option value="domicilio" {% if aula and aula.local == 'domicilio' %}selected{% endif %}>Domiciliar (Casa do Aluno)</option>
+                            <option value="online" {% if aula and aula.local == 'online' %}selected{% endif %}>Online</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="tipo_aula" class="form-label">Tipo de Aula</label>
+                        <select class="form-select" id="tipo_aula" name="tipo_aula" required>
+                            <option value="individual" {% if aula and aula.tipo_aula == 'individual' %}selected{% endif %}>Individual</option>
+                            <option value="dupla" {% if aula and aula.tipo_aula == 'dupla' %}selected{% endif %}>Dupla</option>
+                            <option value="grupo" {% if aula and aula.tipo_aula == 'grupo' %}selected{% endif %}>Grupo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-12">
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('main.agenda') }}" class="btn btn-secondary">
+                            <i class="bi bi-arrow-left"></i> Voltar
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save"></i> {% if aula %}Atualizar{% else %}Salvar{% endif %} Agendamento
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card mt-4" id="valorContainer" style="display: none;">
+    <div class="card-body">
+        <h5 class="card-title">Cálculo do Valor</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Valor por Hora</label>
+                    <input type="text" class="form-control" id="valorHora" readonly>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label class="form-label">Valor Total</label>
+                    <input type="text" class="form-control" id="valorTotal" readonly>
+                </div>
+            </div>
+        </div>
+        <div class="alert alert-info" id="taxaDeslocamento" style="display: none;">
+            <i class="bi bi-info-circle"></i> Será adicionada uma taxa de R$ 15,00 para deslocamento (aluno fora do Plano Piloto)
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const professorSelect = document.getElementById('professor_id');
+    const duracaoSelect = document.getElementById('duracao');
+    const localSelect = document.getElementById('local');
+    const alunoSelect = document.getElementById('aluno_id');
+    const valorContainer = document.getElementById('valorContainer');
+    const valorHora = document.getElementById('valorHora');
+    const valorTotal = document.getElementById('valorTotal');
+    const taxaDeslocamento = document.getElementById('taxaDeslocamento');
+    const agendamentoUnico = document.getElementById('agendamento_unico');
+    const agendamentoRecorrente = document.getElementById('agendamento_recorrente');
+    const opcoesRecorrencia = document.getElementById('opcoesRecorrencia');
+    const dataHoraInput = document.getElementById('data_hora');
+    const dataFimInput = document.getElementById('data_fim');
+
+    // Dados dos professores (valor/hora)
+    const professoresData = JSON.parse('{{ professores|tojson|safe }}'.replace(/&#34;/g, '"')).reduce((acc, professor) => {
+        acc[professor.id] = {
+            valorHora: professor.valor_hora,
+            atendeDomicilio: professor.tipo_atendimento.includes('domiciliar')
+        };
+        return acc;
+    }, {});
+
+    // Dados dos alunos (mora no Plano Piloto)
+    const alunosData = JSON.parse('{{ alunos|tojson|safe }}'.replace(/&#34;/g, '"')).reduce((acc, aluno) => {
+        acc[aluno.id] = {
+            moraPlanoPiloto: aluno.mora_plano_piloto
+        };
+        return acc;
+    }, {});
+
+    function calcularValor() {
+        const professorId = professorSelect.value;
+        const duracao = parseInt(duracaoSelect.value);
+        const local = localSelect.value;
+        const alunoId = alunoSelect.value;
+
+        if (professorId && duracao) {
+            const professor = professoresData[professorId];
+            const aluno = alunosData[alunoId];
+            const valorPorMinuto = professor.valorHora / 60;
+            let valor = valorPorMinuto * duracao;
+
+            // Verifica se precisa adicionar taxa de deslocamento
+            const mostrarTaxa = local === 'domicilio' && aluno && !aluno.moraPlanoPiloto;
+            taxaDeslocamento.style.display = mostrarTaxa ? 'block' : 'none';
+            
+            if (mostrarTaxa) {
+                valor += 15;
+            }
+
+            valorHora.value = 'R$ ' + professor.valorHora.toFixed(2);
+            valorTotal.value = 'R$ ' + valor.toFixed(2);
+            valorContainer.style.display = 'block';
+        } else {
+            valorContainer.style.display = 'none';
+        }
+    }
+
+    // Atualizar data mínima para data final quando a data/hora muda
+    dataHoraInput.addEventListener('change', function() {
+        if (dataHoraInput.value) {
+            const dataSelecionada = new Date(dataHoraInput.value);
+            dataFimInput.min = dataHoraInput.value.split('T')[0];
+            
+            // Definir data final padrão como 3 meses após a data selecionada
+            const dataFimPadrao = new Date(dataSelecionada);
+            dataFimPadrao.setMonth(dataFimPadrao.getMonth() + 3);
+            const ano = dataFimPadrao.getFullYear();
+            const mes = String(dataFimPadrao.getMonth() + 1).padStart(2, '0');
+            const dia = String(dataFimPadrao.getDate()).padStart(2, '0');
+            dataFimInput.value = `${ano}-${mes}-${dia}`;
+            
+            // Se for modo recorrente, marca o dia da semana
+            if (agendamentoRecorrente.checked) {
+                const diaSemana = dataSelecionada.getDay(); // 0=Domingo, 1=Segunda, etc.
+                document.querySelectorAll('.dia-semana').forEach(checkbox => {
+                    checkbox.checked = false;
+                });
+                document.querySelector(`.dia-semana[value="${diaSemana}"]`).checked = true;
+            }
+        }
+    });
+
+    // Mostrar/ocultar opções de recorrência
+    agendamentoUnico.addEventListener('change', function() {
+        opcoesRecorrencia.classList.remove('d-block');
+        opcoesRecorrencia.classList.add('d-none');
+    });
+
+    agendamentoRecorrente.addEventListener('change', function() {
+        opcoesRecorrencia.classList.remove('d-none');
+        opcoesRecorrencia.classList.add('d-block');
+        
+        // Preencher dia da semana baseado na data selecionada
+        if (dataHoraInput.value) {
+            const dataSelecionada = new Date(dataHoraInput.value);
+            const diaSemana = dataSelecionada.getDay(); // 0=Domingo, 1=Segunda, etc.
+            document.querySelectorAll('.dia-semana').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+            document.querySelector(`.dia-semana[value="${diaSemana}"]`).checked = true;
+        }
+    });
+
+    // Event listeners
+    professorSelect.addEventListener('change', calcularValor);
+    duracaoSelect.addEventListener('change', calcularValor);
+    localSelect.addEventListener('change', calcularValor);
+    alunoSelect.addEventListener('change', calcularValor);
+
+    // Calcular ao carregar se já tiver dados
+    if (professorSelect.value && duracaoSelect.value) {
+        calcularValor();
+    }
+
+    // Se for edição, desativar recorrência
+    if (document.querySelector('form').action.includes('editar')) {
+        document.getElementById('recorrenciaContainer').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

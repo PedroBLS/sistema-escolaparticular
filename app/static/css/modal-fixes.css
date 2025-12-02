@@ -1,0 +1,32 @@
+/* modal-fixes.css - Correções para modais do Bootstrap */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1040;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000;
+}
+
+.modal {
+    z-index: 1050;
+    overflow-y: auto;
+}
+
+.modal-content {
+    border: none;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Correção para scroll */
+body.modal-open {
+    overflow: auto;
+    padding-right: 0 !important;
+}
+
+/* Melhorias para os botões de ação */
+.modal-footer .btn {
+    min-width: 100px;
+}

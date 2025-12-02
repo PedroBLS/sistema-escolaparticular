@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Novo Agendamento</title>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #f8f9fa; padding: 15px; text-align: center; }
+        .content { padding: 20px; }
+        .footer { margin-top: 20px; font-size: 0.9em; color: #6c757d; }
+        .btn { display: inline-block; padding: 10px 20px; background-color: #0d6efd; color: white; text-decoration: none; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Novo Agendamento Confirmado</h2>
+        </div>
+        
+        <div class="content">
+            <p>Olá,</p>
+            
+            <p>Um novo agendamento foi criado com os seguintes detalhes:</p>
+            
+            <ul>
+                <li><strong>Matéria:</strong> {{ aula.materia.nome }}</li>
+                <li><strong>Data/Hora:</strong> {{ aula.data_hora.strftime('%d/%m/%Y às %H:%M') }}</li>
+                <li><strong>Duração:</strong> {{ aula.duracao }} minutos</li>
+                <li><strong>Local:</strong> {{ 'Online' if aula.local == 'online' else 'Sala' if aula.local == 'sala' else 'Domicílio' }}</li>
+                {% if aula.local == 'online' and aula.link_aula %}
+                <li><strong>Link:</strong> <a href="{{ aula.link_aula }}">{{ aula.link_aula }}</a></li>
+                {% endif %}
+            </ul>
+            
+            {% if aula.observacoes %}
+            <p><strong>Observações:</strong> {{ aula.observacoes }}</p>
+            {% endif %}
+            
+            <p>
+                <a href="{{ url_for('main.agenda', _external=True) }}" class="btn">
+                    Ver na Agenda
+                </a>
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Este é um e-mail automático, por favor não responda.</p>
+        </div>
+    </div>
+</body>
+</html>

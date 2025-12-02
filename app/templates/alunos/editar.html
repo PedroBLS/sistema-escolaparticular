@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Aluno - {{ aluno.nome }}{% endblock %}
+{% block header %}Editar Aluno{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.editar_aluno', id=aluno.id) }}">
+            {% if csrf_token %}
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    {% endif %}
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            
+            <div class="row g-3">
+                <!-- Dados Pessoais -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Dados Pessoais</h5>
+                    <div class="mb-3">
+                        <label for="nome" class="form-label">Nome Completo</label>
+                        <input type="text" class="form-control" id="nome" name="nome" value="{{ aluno.nome }}" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="rg" class="form-label">RG</label>
+                            <input type="text" class="form-control" id="rg" name="rg" value="{{ aluno.rg }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="cpf" class="form-label">CPF</label>
+                            <input type="text" class="form-control" id="cpf" name="cpf" value="{{ aluno.cpf }}" required readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="estado_civil" class="form-label">Estado Civil</label>
+                            <select class="form-select" id="estado_civil" name="estado_civil" required>
+                                <option value="Solteiro" {% if aluno.estado_civil == 'Solteiro' %}selected{% endif %}>Solteiro(a)</option>
+                                <option value="Casado" {% if aluno.estado_civil == 'Casado' %}selected{% endif %}>Casado(a)</option>
+                                <option value="Divorciado" {% if aluno.estado_civil == 'Divorciado' %}selected{% endif %}>Divorciado(a)</option>
+                                <option value="Viúvo" {% if aluno.estado_civil == 'Viúvo' %}selected{% endif %}>Viúvo(a)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="nacionalidade" class="form-label">Nacionalidade</label>
+                            <input type="text" class="form-control" id="nacionalidade" name="nacionalidade" value="{{ aluno.nacionalidade }}" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Dados Acadêmicos/Contato -->
+                <div class="col-md-6">
+                    <h5 class="mb-3">Dados Acadêmicos e Contato</h5>
+                    <div class="mb-3">
+                        <label for="serie" class="form-label">Série/Ano</label>
+                        <input type="text" class="form-control" id="serie" name="serie" value="{{ aluno.serie }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="nome_responsavel" class="form-label">Nome do Responsável</label>
+                        <input type="text" class="form-control" id="nome_responsavel" name="nome_responsavel" value="{{ aluno.nome_responsavel }}" required>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="telefone" name="telefone" value="{{ aluno.telefone }}" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="endereco" class="form-label">Endereço</label>
+                            <input type="text" class="form-control" id="endereco" name="endereco" value="{{ aluno.endereco }}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="mora_plano_piloto" name="mora_plano_piloto" {% if aluno.mora_plano_piloto %}checked{% endif %}>
+                        <label class="form-check-label" for="mora_plano_piloto">Mora no Plano Piloto?</label>
+                    </div>
+                </div>
+                
+                <!-- Plano -->
+                <div class="col-12">
+                    <hr>
+                    <h5 class="mb-3">Plano Contratado</h5>
+                    <div class="mb-3">
+                        <select class="form-select" id="plano_adquirido" name="plano_adquirido" required>
+    <option value="" disabled>Selecione um plano</option>
+    
+    <optgroup label="Aulas Particulares">
+        <option value="1h de aula" {% if aluno.plano_adquirido == '1h de aula' %}selected{% endif %}>1h de aula</option>
+        <option value="1h30 de aula" {% if aluno.plano_adquirido == '1h30 de aula' %}selected{% endif %}>1h30 de aula</option>
+        <option value="2h de aula" {% if aluno.plano_adquirido == '2h de aula' %}selected{% endif %}>2h de aula</option>
+    </optgroup>
+    
+    <optgroup label="Pacotes Pré-Pagos Flexíveis">
+        <option value="10 aulas (6 meses)" {% if aluno.plano_adquirido == '10 aulas (6 meses)' %}selected{% endif %}>10 aulas (válido por 6 meses)</option>
+        <option value="20 aulas (12 meses)" {% if aluno.plano_adquirido == '20 aulas (12 meses)' %}selected{% endif %}>20 aulas (válido por 12 meses)</option>
+        <option value="30 aulas (12 meses)" {% if aluno.plano_adquirido == '30 aulas (12 meses)' %}selected{% endif %}>30 aulas (válido por 12 meses)</option>
+    </optgroup>
+    
+    <optgroup label="Aulas para 2 Alunos (Compartilhada)">
+        <option value="1h compartilhada" {% if aluno.plano_adquirido == '1h compartilhada' %}selected{% endif %}>1h compartilhada</option>
+        <option value="1h30 compartilhada" {% if aluno.plano_adquirido == '1h30 compartilhada' %}selected{% endif %}>1h30 compartilhada</option>
+        <option value="2h compartilhada" {% if aluno.plano_adquirido == '2h compartilhada' %}selected{% endif %}>2h compartilhada</option>
+    </optgroup>
+    
+    <optgroup label="Aulas em Grupo (3 a 5 alunos)">
+        <option value="1h em grupo" {% if aluno.plano_adquirido == '1h em grupo' %}selected{% endif %}>1h em grupo</option>
+        <option value="1h30 em grupo" {% if aluno.plano_adquirido == '1h30 em grupo' %}selected{% endif %}>1h30 em grupo</option>
+        <option value="2h em grupo" {% if aluno.plano_adquirido == '2h em grupo' %}selected{% endif %}>2h em grupo</option>
+    </optgroup>
+    
+    <optgroup label="Planos para Duplas (2 alunos - 6 meses)">
+        <option value="4 aulas/mês (1h/semana) - Dupla" {% if aluno.plano_adquirido == '4 aulas/mês (1h/semana) - Dupla' %}selected{% endif %}>4 aulas/mês (1h/semana)</option>
+        <option value="4 aulas/mês (1h30/semana) - Dupla" {% if aluno.plano_adquirido == '4 aulas/mês (1h30/semana) - Dupla' %}selected{% endif %}>4 aulas/mês (1h30/semana)</option>
+        <option value="8 aulas/mês (2x/semana - 1h) - Dupla" {% if aluno.plano_adquirido == '8 aulas/mês (2x/semana - 1h) - Dupla' %}selected{% endif %}>8 aulas/mês (2x/semana - 1h)</option>
+        <option value="8 aulas/mês (2x/semana - 1h30) - Dupla" {% if aluno.plano_adquirido == '8 aulas/mês (2x/semana - 1h30) - Dupla' %}selected{% endif %}>8 aulas/mês (2x/semana - 1h30)</option>
+        <option value="12 aulas/mês (3x/semana - 1h) - Dupla" {% if aluno.plano_adquirido == '12 aulas/mês (3x/semana - 1h) - Dupla' %}selected{% endif %}>12 aulas/mês (3x/semana - 1h)</option>
+        <option value="12 aulas/mês (3x/semana - 1h30) - Dupla" {% if aluno.plano_adquirido == '12 aulas/mês (3x/semana - 1h30) - Dupla' %}selected{% endif %}>12 aulas/mês (3x/semana - 1h30)</option>
+        <option value="16 aulas/mês (4x/semana - 1h) - Dupla" {% if aluno.plano_adquirido == '16 aulas/mês (4x/semana - 1h) - Dupla' %}selected{% endif %}>16 aulas/mês (4x/semana - 1h)</option>
+        <option value="16 aulas/mês (4x/semana - 1h30) - Dupla" {% if aluno.plano_adquirido == '16 aulas/mês (4x/semana - 1h30) - Dupla' %}selected{% endif %}>16 aulas/mês (4x/semana - 1h30)</option>
+    </optgroup>
+    
+    <optgroup label="Planos para Grupos (3 a 5 alunos - 6 meses)">
+        <option value="4 aulas/mês (1h/semana) - Grupo" {% if aluno.plano_adquirido == '4 aulas/mês (1h/semana) - Grupo' %}selected{% endif %}>4 aulas/mês (1h/semana)</option>
+        <option value="4 aulas/mês (1h30/semana) - Grupo" {% if aluno.plano_adquirido == '4 aulas/mês (1h30/semana) - Grupo' %}selected{% endif %}>4 aulas/mês (1h30/semana)</option>
+        <option value="8 aulas/mês (2x/semana - 1h) - Grupo" {% if aluno.plano_adquirido == '8 aulas/mês (2x/semana - 1h) - Grupo' %}selected{% endif %}>8 aulas/mês (2x/semana - 1h)</option>
+        <option value="8 aulas/mês (2x/semana - 1h30) - Grupo" {% if aluno.plano_adquirido == '8 aulas/mês (2x/semana - 1h30) - Grupo' %}selected{% endif %}>8 aulas/mês (2x/semana - 1h30)</option>
+        <option value="12 aulas/mês (3x/semana - 1h) - Grupo" {% if aluno.plano_adquirido == '12 aulas/mês (3x/semana - 1h) - Grupo' %}selected{% endif %}>12 aulas/mês (3x/semana - 1h)</option>
+        <option value="12 aulas/mês (3x/semana - 1h30) - Grupo" {% if aluno.plano_adquirido == '12 aulas/mês (3x/semana - 1h30) - Grupo' %}selected{% endif %}>12 aulas/mês (3x/semana - 1h30)</option>
+        <option value="16 aulas/mês (4x/semana - 1h) - Grupo" {% if aluno.plano_adquirido == '16 aulas/mês (4x/semana - 1h) - Grupo' %}selected{% endif %}>16 aulas/mês (4x/semana - 1h)</option>
+        <option value="16 aulas/mês (4x/semana - 1h30) - Grupo" {% if aluno.plano_adquirido == '16 aulas/mês (4x/semana - 1h30) - Grupo' %}selected{% endif %}>16 aulas/mês (4x/semana - 1h30)</option>
+    </optgroup>
+    
+    <optgroup label="Assinatura Gold">
+        <option value="Assinatura Gold" {% if aluno.plano_adquirido == 'Assinatura Gold' %}selected{% endif %}>Assinatura Gold</option>
+    </optgroup>
+    
+    <optgroup label="Psicopedagogia">
+        <option value="Avaliação Psicopedagógica" {% if aluno.plano_adquirido == 'Avaliação Psicopedagógica' %}selected{% endif %}>Avaliação Psicopedagógica</option>
+        <option value="4 sessões/mês - Psicopedagogia" {% if aluno.plano_adquirido == '4 sessões/mês - Psicopedagogia' %}selected{% endif %}>4 sessões/mês</option>
+        <option value="8 sessões/mês - Psicopedagogia" {% if aluno.plano_adquirido == '8 sessões/mês - Psicopedagogia' %}selected{% endif %}>8 sessões/mês</option>
+    </optgroup>
+</select>
+                    </div>
+                </div>
+                
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ url_for('alunos.listar_alunos') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras para os campos
+    $('#cpf').mask('000.000.000-00');
+    $('#rg').mask('00.000.000-0');
+    $('#telefone').mask('(00) 00000-0000');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+
+{% block title %}Registro{% endblock %}
+{% block header %}Criar Nova Conta{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">  <!-- Aumentei para col-md-8 para melhor acomodação -->
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('auth.register') }}">
+                    {{ form.hidden_tag() }}
+                    
+                    <!-- Tipo de Usuário -->
+                    <div class="mb-3">
+                        {{ form.user_type.label(class="form-label") }}
+                        <select name="user_type" id="user_type" class="form-select" required>
+                            <option value="">Selecione seu perfil</option>
+                            <option value="aluno">Aluno</option>
+                            <option value="professor">Professor</option>
+                        </select>
+                    </div>
+
+                    <!-- Dados Básicos (User) -->
+                    <div class="mb-3">
+                        {{ form.email.label(class="form-label") }}
+                        {{ form.email(class="form-control") }}
+                        {% if form.email.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.email.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control") }}
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.password.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form.confirm_password.label(class="form-label") }}
+                            {{ form.confirm_password(class="form-control") }}
+                        </div>
+                    </div>
+
+                    <!-- Seção Aluno (inicialmente oculta) -->
+                    <div id="aluno-fields" style="display:none;">
+                        <h5 class="mt-4 mb-3 border-bottom">Dados do Aluno</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" name="aluno_nome" class="form-control" id="aluno_nome">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">CPF (apenas números)</label>
+                            <input type="text" name="aluno_cpf" class="form-control" id="aluno_cpf" maxlength="11">
+                        </div>
+                        <!-- Adicione outros campos específicos do aluno aqui -->
+                    </div>
+
+                    <!-- Seção Professor (inicialmente oculta) -->
+                    <div id="professor-fields" style="display:none;">
+                        <h5 class="mt-4 mb-3 border-bottom">Dados do Professor</h5>
+                        <div class="mb-3">
+                            <label class="form-label">Nome Completo</label>
+                            <input type="text" name="professor_nome" class="form-control" id="professor_nome">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Disciplina Principal</label>
+                            <input type="text" name="professor_disciplina" class="form-control" id="professor_disciplina">
+                        </div>
+                        <!-- Adicione outros campos específicos do professor aqui -->
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mt-4">Registrar</button>
+                </form>
+                <div class="mt-3 text-center">
+                    <a href="{{ url_for('auth.login') }}">Já tem uma conta? Faça login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userType = document.getElementById('user_type');
+    const alunoFields = document.getElementById('aluno-fields');
+    const professorFields = document.getElementById('professor-fields');
+
+    userType.addEventListener('change', function() {
+        if (this.value === 'aluno') {
+            alunoFields.style.display = 'block';
+            professorFields.style.display = 'none';
+            // Define campos como obrigatórios
+            document.getElementById('aluno_nome').required = true;
+            document.getElementById('aluno_cpf').required = true;
+            document.getElementById('professor_nome').required = false;
+            document.getElementById('professor_disciplina').required = false;
+        } else if (this.value === 'professor') {
+            alunoFields.style.display = 'none';
+            professorFields.style.display = 'block';
+            // Define campos como obrigatórios
+            document.getElementById('aluno_nome').required = false;
+            document.getElementById('aluno_cpf').required = false;
+            document.getElementById('professor_nome').required = true;
+            document.getElementById('professor_disciplina').required = true;
+        } else {
+            alunoFields.style.display = 'none';
+            professorFields.style.display = 'none';
+        }
+    });
+});
+</script>
+
+<style>
+.invalid-feedback {
+    display: block;
+    color: #dc3545;
+    font-size: 0.875em;
+}
+</style>
+{% endblock %}

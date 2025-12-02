@@ -1,0 +1,54 @@
+"""Torna campos nullable
+
+Revision ID: sqlite_fix_002
+Revises: ca9a6d5df2f5
+Create Date: 2025-06-17 15:25:00.000000
+
+"""
+from alembic import op
+import sqlalchemy as sa
+
+# revision identifiers, used by Alembic.
+revision = 'sqlite_fix_002'
+down_revision = 'ca9a6d5df2f5'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # Usar batch_alter_table para modificar a tabela contrato (compatível com SQLite)
+    with op.batch_alter_table('contrato', schema=None) as batch_op:
+        # Tornar professor_id nullable
+        batch_op.alter_column('professor_id', nullable=True)
+        # Tornar arquivo nullable
+        batch_op.alter_column('arquivo', nullable=True)
+    
+    # Usar batch_alter_table para modificar a tabela professor (compatível com SQLite)
+    with op.batch_alter_table('professor', schema=None) as batch_op:
+        # Remover a constraint única problemática se existir
+        try:
+            batch_op.drop_constraint('uq_professor_user_id', type_='unique')
+        except:
+            pass  # Constraint pode não existir
+        
+        # Remover a coluna user_id duplicada se existir
+        try:
+            batch_op.drop_column('user_id')
+        except:
+            pass  # Coluna pode não existir
+
+
+def downgrade():
+    # Usar batch_alter_table para reverter mudanças na tabela professor
+    with op.batch_alter_table('professor', schema=None) as batch_op:
+        # Adicionar de volta a coluna user_id se necessário
+        batch_op.add_column(sa.Column('user_id', sa.INTEGER(), nullable=True))
+        # Recriar constraint única se necessário
+        batch_op.create_unique_constraint('uq_professor_user_id', ['user_id'])
+    
+    # Usar batch_alter_table para reverter mudanças na tabela contrato
+    with op.batch_alter_table('contrato', schema=None) as batch_op:
+        # Reverter arquivo para NOT NULL
+        batch_op.alter_column('arquivo', nullable=False)
+        # Reverter professor_id para NOT NULL
+        batch_op.alter_column('professor_id', nullable=False)

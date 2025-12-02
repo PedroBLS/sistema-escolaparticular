@@ -1,0 +1,177 @@
+<!-- templates/responsaveis/visualizar.html -->
+{% extends "base.html" %}
+
+{% block title %}{{ responsavel.nome }} - Responsável{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Informações do Responsável -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-user"></i> Informações do Responsável
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-user-circle fa-4x text-primary"></i>
+                        <h4 class="mt-2">{{ responsavel.nome }}</h4>
+                        <p class="text-muted">{{ responsavel.email }}</p>
+                    </div>
+                    
+                    <table class="table table-sm">
+                        <tr>
+                            <td><strong>CPF:</strong></td>
+                            <td>{{ responsavel.cpf }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>RG:</strong></td>
+                            <td>{{ responsavel.rg }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Telefone:</strong></td>
+                            <td>{{ responsavel.telefone }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Estado Civil:</strong></td>
+                            <td>{{ responsavel.estado_civil }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Nacionalidade:</strong></td>
+                            <td>{{ responsavel.nacionalidade }}</td>
+                        </tr>
+                    </table>
+                    
+                    <div class="mt-3">
+                        <strong>Endereço:</strong>
+                        <p class="text-muted">{{ responsavel.endereco }}</p>
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('main.editar_responsavel', id=responsavel.id) }}" 
+                           class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Editar Informações
+                        </a>
+                        <a href="{{ url_for('main.lista_responsaveis') }}" 
+                           class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Voltar à Lista
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Filhos (Alunos) -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-graduation-cap"></i> Filhos
+                    </h3>
+                    <span class="badge bg-info">{{ alunos|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if alunos %}
+                        {% for aluno in alunos %}
+                        <div class="card mb-2">
+                            <div class="card-body p-3">
+                                <h6 class="card-title mb-1">
+                                    <i class="fas fa-user-graduate"></i> {{ aluno.nome }}
+                                </h6>
+                                <p class="card-text small text-muted mb-2">
+                                    <strong>Série:</strong> {{ aluno.serie }}<br>
+                                    <strong>Plano:</strong> {{ aluno.plano_adquirido or 'Não definido' }}
+                                </p>
+                                <a href="{{ url_for('alunos.visualizar_aluno', id=aluno.id) }}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> Ver Detalhes
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-user-graduate fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">Nenhum filho cadastrado</p>
+                            <a href="{{ url_for('main.cadastro_aluno') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Cadastrar Filho
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Contratos -->
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-contract"></i> Contratos
+                    </h3>
+                    <span class="badge bg-success">{{ contratos|length }}</span>
+                </div>
+                <div class="card-body">
+                    {% if contratos %}
+                        {% for contrato in contratos %}
+                        <div class="card mb-2">
+                            <div class="card-body p-3">
+                                <h6 class="card-title mb-1">
+                                    <i class="fas fa-file-alt"></i> {{ contrato.tipo_plano }}
+                                </h6>
+                                <p class="card-text small text-muted mb-2">
+                                    <strong>Validade:</strong> {{ contrato.validade.strftime('%d/%m/%Y') }}<br>
+                                    <strong>Valor:</strong> R$ {{ "%.2f"|format(contrato.valor_total) }}<br>
+                                    <strong>Alunos:</strong> {{ contrato.alunos|length }}
+                                </p>
+                                
+                                <!-- Status do contrato -->
+                                {% set dias_vencimento = (contrato.validade - moment().date()).days %}
+                                {% if dias_vencimento < 0 %}
+                                    <span class="badge bg-danger mb-2">Vencido</span>
+                                {% elif dias_vencimento <= 30 %}
+                                    <span class="badge bg-warning mb-2">Vence em {{ dias_vencimento }} dias</span>
+                                {% else %}
+                                    <span class="badge bg-success mb-2">Ativo</span>
+                                {% endif %}
+                                
+                                <div class="btn-group w-100" role="group">
+                                    <a href="{{ url_for('main.visualizar_contrato', id=contrato.id) }}" 
+                                       class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('main.download_contrato', id=contrato.id) }}" 
+                                       class="btn btn-sm btn-outline-success">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-3">
+                            <i class="fas fa-file-contract fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">Nenhum contrato ativo</p>
+                            {% if alunos %}
+                            <a href="{{ url_for('main.novo_contrato') }}" class="btn btn-sm btn-primary">
+                                <i class="fas fa-plus"></i> Criar Contrato
+                            </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Função para calcular dias até vencimento (caso o Jinja2 não suporte)
+document.addEventListener('DOMContentLoaded', function() {
+    // Aqui você pode adicionar JavaScript para funcionalidades dinâmicas
+});
+</script>
+{% endblock %}

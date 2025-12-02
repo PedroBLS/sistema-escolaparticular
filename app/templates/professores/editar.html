@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Professor - {{ professor.nome }}{% endblock %}
+{% block header %}Editar Professor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.editar_professor', id=professor.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3">
+                <!-- Coluna Esquerda -->
+                <div class="col-lg-6">
+                    <!-- Dados Pessoais -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Dados Pessoais</h5>
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome Completo*</label>
+                            <input type="text" class="form-control" id="nome" name="nome" 
+                                   value="{{ professor.nome }}" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="rg" class="form-label">RG*</label>
+                                <input type="text" class="form-control" id="rg" name="rg" 
+                                       value="{{ professor.rg }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cpf" class="form-label">CPF*</label>
+                                <input type="text" class="form-control" id="cpf" name="cpf" 
+                                       value="{{ professor.cpf }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil</label>
+                                <select class="form-select" id="estado_civil" name="estado_civil">
+                                    <option value="Solteiro" {% if professor.estado_civil == 'Solteiro' %}selected{% endif %}>Solteiro(a)</option>
+                                    <option value="Casado" {% if professor.estado_civil == 'Casado' %}selected{% endif %}>Casado(a)</option>
+                                    <option value="Divorciado" {% if professor.estado_civil == 'Divorciado' %}selected{% endif %}>Divorciado(a)</option>
+                                    <option value="Viúvo" {% if professor.estado_civil == 'Viúvo' %}selected{% endif %}>Viúvo(a)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nacionalidade" class="form-label">Nacionalidade</label>
+                                <input type="text" class="form-control" id="nacionalidade" name="nacionalidade" 
+                                       value="{{ professor.nacionalidade }}">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="endereco" class="form-label">Endereço Completo*</label>
+                            <textarea class="form-control" id="endereco" name="endereco" 
+                                      rows="2" required>{{ professor.endereco }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita -->
+                <div class="col-lg-6">
+                    <!-- Dados Profissionais -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Dados Profissionais</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="disciplina" class="form-label">Disciplina*</label>
+                                <input type="text" class="form-control" id="disciplina" name="disciplina" 
+                                       value="{{ professor.disciplina }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="valor_hora" class="form-label">Valor por Hora (R$)*</label>
+                                <input type="number" step="0.01" class="form-control" id="valor_hora" 
+                                       name="valor_hora" value="{{ professor.valor_hora }}" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="disponibilidade" class="form-label">Disponibilidade*</label>
+                            <textarea class="form-control" id="disponibilidade" name="disponibilidade" 
+                                      rows="3" required>{{ professor.disponibilidade }}</textarea>
+                            <small class="text-muted">Ex: Segunda a Sexta, 14h às 18h; Sábado, 8h às 12h</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Atendimento*</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="presencial" 
+                                       name="tipo_atendimento" value="presencial"
+                                       {% if 'presencial' in professor.tipo_atendimento.split(',') %}checked{% endif %}>
+                                <label class="form-check-label" for="presencial">Presencial</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="online" 
+                                       name="tipo_atendimento" value="online"
+                                       {% if 'online' in professor.tipo_atendimento.split(',') %}checked{% endif %}>
+                                <label class="form-check-label" for="online">Online</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="domiciliar" 
+                                       name="tipo_atendimento" value="domiciliar"
+                                       {% if 'domiciliar' in professor.tipo_atendimento.split(',') %}checked{% endif %}>
+                                <label class="form-check-label" for="domiciliar">Domiciliar</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Contato</h5>
+                        <div class="mb-3">
+                            <label for="telefone" class="form-label">Telefone*</label>
+                            <input type="tel" class="form-control" id="telefone" name="telefone" 
+                                   value="{{ professor.telefone }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="email" class="form-label">E-mail*</label>
+                            <input type="email" class="form-control" id="email" name="email" 
+                                   value="{{ professor.user.email if professor.user else '' }}" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Nova Senha</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Deixe em branco para manter a atual">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rodapé do Formulário -->
+                <div class="col-12">
+                    <hr>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Salvar Alterações
+                    </button>
+                    <a href="{{ url_for('main.visualizar_professor', id=professor.id) }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Cancelar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras para os campos
+    $('#cpf').mask('000.000.000-00');
+    $('#rg').mask('00.000.000-0');
+    $('#telefone').mask('(00) 00000-0000');
+    $('#valor_hora').mask('000.000.000.000.000,00', {reverse: true});
+});
+</script>
+{% endblock %}

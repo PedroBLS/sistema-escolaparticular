@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-chart-line text-primary me-2"></i>
+                    Dashboard de Contratos
+                </h2>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-outline-primary" onclick="atualizarDados()">
+                        <i class="fas fa-sync-alt me-2"></i>
+                        Atualizar
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="exportarRelatorio()">
+                        <i class="fas fa-file-excel me-2"></i>
+                        Exportar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cards de Estatísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-primary">
+                                <i class="fas fa-file-contract"></i>
+                                Total de Contratos
+                            </h5>
+                            <h2 class="text-primary">{{ total_contratos }}</h2>
+                            <small class="text-muted">contratos cadastrados</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-success">
+                                <i class="fas fa-check-circle"></i>
+                                Contratos Ativos
+                            </h5>
+                            <h2 class="text-success">{{ contratos_ativos }}</h2>
+                            <small class="text-muted">em vigência</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-danger">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-danger">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Contratos Vencidos
+                            </h5>
+                            <h2 class="text-danger">{{ contratos_vencidos }}</h2>
+                            <small class="text-muted">necessitam renovação</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-info">
+                                <i class="fas fa-dollar-sign"></i>
+                                Receita Total
+                            </h5>
+                            <h2 class="text-info">R$ {{ "%.2f"|format(receita_total)|replace(".", ",") }}</h2>
+                            <small class="text-muted">contratos ativos</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Gráfico de Contratos por Tipo -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>
+                                Contratos por Tipo de Plano
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="graficoTipos" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Evolução Mensal -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Evolução Mensal de Contratos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="graficoEvolucao" width="400" height="300"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabela de Resumo por Tipo -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-table me-2"></i>
+                                Resumo por Tipo de Plano
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Tipo de Plano</th>
+                                            <th>Quantidade</th>
+                                            <th>Percentual</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for tipo in contratos_por_tipo %}
+                                        <tr>
+                                            <td>{{ tipo[0] }}</td>
+                                            <td>{{ tipo[1] }}</td>
+                                            <td>
+                                                {% set percentual = (tipo[1] / contratos_ativos * 100) if contratos_ativos > 0 else 0 %}
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" role="progressbar" 
+                                                         data-width="{{ percentual }}">
+                                                        {{ "%.1f"|format(percentual) }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métricas Adicionais -->
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-analytics me-2"></i>
+                                Métricas Adicionais
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-primary">
+                                            {% set ticket_medio = (receita_total / contratos_ativos) if contratos_ativos > 0 else 0 %}
+                                            R$ {{ "%.2f"|format(ticket_medio)|replace(".", ",") }}
+                                        </h4>
+                                        <small class="text-muted">Ticket Médio</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-success">
+                                            {% set taxa_ativacao = (contratos_ativos / total_contratos * 100) if total_contratos > 0 else 0 %}
+                                            {{ "%.1f"|format(taxa_ativacao) }}%
+                                        </h4>
+                                        <small class="text-muted">Taxa de Ativação</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-warning">
+                                            {% set taxa_vencimento = (contratos_vencidos / total_contratos * 100) if total_contratos > 0 else 0 %}
+                                            {{ "%.1f"|format(taxa_vencimento) }}%
+                                        </h4>
+                                        <small class="text-muted">Taxa de Vencimento</small>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center p-3 border rounded">
+                                        <h4 class="text-info">
+                                            {{ contratos_por_mes|length }}
+                                        </h4>
+                                        <small class="text-muted">Meses Analisados</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações Rápidas -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt me-2"></i>
+                        Ações Rápidas
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="/contratos/novo" class="btn btn-primary btn-lg w-100 mb-2">
+                                <i class="fas fa-plus me-2"></i>
+                                Novo Contrato
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/contratos/vencimentos" class="btn btn-warning btn-lg w-100 mb-2">
+                                <i class="fas fa-calendar-times me-2"></i>
+                                Ver Vencimentos
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-info btn-lg w-100 mb-2" onclick="enviarLembretesGeral()">
+                                <i class="fas fa-bell me-2"></i>
+                                Enviar Lembretes
+                            </button>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/contratos/" class="btn btn-secondary btn-lg w-100 mb-2">
+                                <i class="fas fa-list me-2"></i>
+                                Listar Todos
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Dados para os gráficos (não processados como JavaScript) -->
+<script type="application/json" id="tiposData">
+{{ contratos_por_tipo|tojson }}
+</script>
+<script type="application/json" id="evolucaoData">
+{{ contratos_por_mes|tojson }}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Função para carregar dados dos elementos JSON
+function carregarDadosGraficos() {
+    var tiposElement = document.getElementById('tiposData');
+    var evolucaoElement = document.getElementById('evolucaoData');
+    
+    var tiposData = JSON.parse(tiposElement.textContent);
+    var evolucaoData = JSON.parse(evolucaoElement.textContent);
+    
+    return {
+        tipos: tiposData,
+        evolucao: evolucaoData
+    };
+}
+
+// Configurar barras de progresso e gráficos
+document.addEventListener('DOMContentLoaded', function() {
+    // Carregar dados
+    var dados = carregarDadosGraficos();
+    
+    // Configurar barras de progresso
+    var progressBars = document.querySelectorAll('.progress-bar[data-width]');
+    progressBars.forEach(function(bar) {
+        var width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    // Gráfico de Pizza - Contratos por Tipo
+    var ctxTipos = document.getElementById('graficoTipos');
+    if (ctxTipos && dados.tipos.length > 0) {
+        new Chart(ctxTipos.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: dados.tipos.map(function(item) { return item[0]; }),
+                datasets: [{
+                    data: dados.tipos.map(function(item) { return item[1]; }),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF',
+                        '#FF9F40'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    }
+    
+    // Gráfico de Linha - Evolução Mensal
+    var ctxEvolucao = document.getElementById('graficoEvolucao');
+    if (ctxEvolucao && dados.evolucao.length > 0) {
+        new Chart(ctxEvolucao.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: dados.evolucao.map(function(item) { return item.mes; }),
+                datasets: [{
+                    label: 'Contratos Criados',
+                    data: dados.evolucao.map(function(item) { return item.total; }),
+                    borderColor: '#36A2EB',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+
+function atualizarDados() {
+    location.reload();
+}
+
+function exportarRelatorio() {
+    alert('Funcionalidade de exportação será implementada em breve!');
+}
+
+function enviarLembretesGeral() {
+    if (confirm('Deseja enviar lembretes para todos os contratos próximos ao vencimento?')) {
+        fetch('/contratos/api/enviar-lembretes-geral', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(function(response) { 
+            return response.json(); 
+        })
+        .then(function(data) {
+            if (data.success) {
+                alert('Lembretes enviados com sucesso!');
+            } else {
+                alert('Erro ao enviar lembretes: ' + data.message);
+            }
+        })
+        .catch(function(error) {
+            console.error('Erro:', error);
+            alert('Erro ao enviar lembretes');
+        });
+    }
+}
+</script>
+
+<style>
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.progress {
+    background-color: #e9ecef;
+    height: 20px;
+}
+
+.btn-lg {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+}
+
+.border {
+    border: 1px solid #dee2e6 !important;
+}
+
+.rounded {
+    border-radius: 0.375rem !important;
+}
+
+canvas {
+    max-height: 300px;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Painel Administrativo</h2>
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Alunos</h5>
+                    <p class="card-text display-4">{{ total_alunos }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Total de Professores</h5>
+                    <p class="card-text display-4">{{ total_professores }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Aulas Agendadas</h5>
+                    <p class="card-text display-4">{{ aulas_agendadas }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Ações Rápidas</h4>
+        </div>
+        <div class="card-body">
+            <a href="{{ url_for('alunos.cadastro_aluno') }}" class="btn btn-primary mr-2">
+                Cadastrar Aluno
+            </a>
+            <a href="{{ url_for('main.cadastrar_professor') }}" class="btn btn-secondary mr-2">
+                Cadastrar Professor
+            </a>
+            <a href="{{ url_for('main.agenda') }}" class="btn btn-success">
+                Agendar Aula
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

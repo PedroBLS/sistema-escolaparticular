@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Professor{% endblock %}
+{% block header %}Cadastro de Professor{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('main.cadastrar_professor') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="row g-3">
+                <!-- Coluna Esquerda -->
+                <div class="col-lg-6">
+                    <!-- Dados Pessoais -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Dados Pessoais</h5>
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome Completo</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="rg" class="form-label">RG</label>
+                                <input type="text" class="form-control" id="rg" name="rg" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="cpf" class="form-label">CPF</label>
+                                <input type="text" class="form-control" id="cpf" name="cpf" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="estado_civil" class="form-label">Estado Civil</label>
+                                <select class="form-select" id="estado_civil" name="estado_civil" required>
+                                    <option value="Solteiro">Solteiro(a)</option>
+                                    <option value="Casado">Casado(a)</option>
+                                    <option value="Divorciado">Divorciado(a)</option>
+                                    <option value="Viúvo">Viúvo(a)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="nacionalidade" class="form-label">Nacionalidade</label>
+                                <input type="text" class="form-control" id="nacionalidade" name="nacionalidade" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="endereco" class="form-label">Endereço Completo</label>
+                            <textarea class="form-control" id="endereco" name="endereco" rows="2" required></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Dados Profissionais - Movido para a esquerda -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Dados Profissionais</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="disciplina" class="form-label">Disciplina</label>
+                                <input type="text" class="form-control" id="disciplina" name="disciplina" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="valor_hora" class="form-label">Valor por Hora (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="valor_hora" name="valor_hora" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="disponibilidade" class="form-label">Disponibilidade</label>
+                            <textarea class="form-control" id="disponibilidade" name="disponibilidade" rows="3" required></textarea>
+                            <small class="text-muted">Ex: Segunda a Sexta, 14h às 18h; Sábado, 8h às 12h</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Atendimento</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="presencial" name="tipo_atendimento" value="presencial">
+                                <label class="form-check-label" for="presencial">Presencial</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="domiciliar" name="tipo_atendimento" value="domiciliar">
+                                <label class="form-check-label" for="domiciliar">Domiciliar</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="online" name="tipo_atendimento" value="online">
+                                <label class="form-check-label" for="online">Online</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita -->
+                <div class="col-lg-6">
+                    <!-- Dados Bancários e Contato -->
+                    <div class="mb-4">
+                        <h5 class="mb-3">Dados Bancários</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="banco" class="form-label">Banco</label>
+                                <input type="text" class="form-control" id="banco" name="banco" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="agencia" class="form-label">Agência</label>
+                                <input type="text" class="form-control" id="agencia" name="agencia" required>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="conta" class="form-label">Conta</label>
+                            <input type="text" class="form-control" id="conta" name="conta" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="pix" class="form-label">Chave PIX</label>
+                            <input type="text" class="form-control" id="pix" name="pix">
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <h5 class="mb-3 mt-4">Contato</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="telefone" class="form-label">Telefone</label>
+                                <input type="tel" class="form-control" id="telefone" name="telefone" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label">E-mail</label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="senha" class="form-label">Senha*</label>
+                                <input 
+                                    type="password" 
+                                    class="form-control" 
+                                    id="password" 
+                                    name="password" 
+                                    minlength="8"
+                                    required
+                                    placeholder="Mínimo 8 caracteres"
+                                >
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="confirmar_senha" class="form-label">Confirmar Senha*</label>
+                                <input 
+                                    type="password" 
+                                    class="form-control" 
+                                    id="confirmar_senha" 
+                                    name="confirmar_senha" 
+                                    required
+                                    placeholder="Digite novamente"
+                                >
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rodapé do Formulário -->
+                <div class="col-12">
+                    <hr>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Cadastrar Professor
+                    </button>
+                    <a href="{{ url_for('main.listar_professores') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras para os campos
+    $('#cpf').mask('000.000.000-00');
+    $('#rg').mask('00.000.000-0');
+    $('#telefone').mask('(00) 00000-0000');
+    $('#agencia').mask('0000-0');
+    $('#conta').mask('00000-0');
+    $('#valor_hora').mask('000.000.000.000.000,00', {reverse: true});
+
+    // Validação de senha
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const senha = document.getElementById('password').value;
+        const confirmarSenha = document.getElementById('confirmar_senha').value;
+        
+        if (senha !== confirmarSenha) {
+            e.preventDefault();
+            alert('❗ As senhas não coincidem!');
+            document.getElementById('confirmar_senha').focus();
+            return;
+        }
+        
+        if (senha.length < 8) {
+            e.preventDefault();
+            alert('🔒 A senha deve ter no mínimo 8 caracteres');
+            document.getElementById('senha').focus();
+            return;
+        }
+    });
+});
+</script>
+{% endblock %}

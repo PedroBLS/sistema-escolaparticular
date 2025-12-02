@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Bem-vindo, {{ aluno.nome }}</h2>
+    
+    <div class="card mt-4">
+        <div class="card-header">
+            <h4>Suas Próximas Aulas</h4>
+        </div>
+        <div class="card-body">
+            {% if proximas_aulas %}
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Data/Hora</th>
+                        <th>Professor</th>
+                        <th>Disciplina</th>
+                        <th>Local</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for aula in proximas_aulas %}
+                    <tr>
+                        <td>{{ aula.data_hora.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td>{{ aula.professor.nome }}</td>
+                        <td>{{ aula.professor.disciplina }}</td>
+                        <td>{{ aula.local }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>Não há aulas agendadas.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{{ url_for('main.agenda') }}" class="btn btn-primary">
+            Ver Agenda Completa
+        </a>
+    </div>
+</div>
+{% endblock %}

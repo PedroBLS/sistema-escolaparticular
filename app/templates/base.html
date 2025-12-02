@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="description" content="Sistema de Gestão Educacional">
+    <title>Gestão Educacional - {% block title %}{% endblock %}</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/modal-fixes.css') }}" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            transition: all 0.3s;
+        }
+        .sidebar .nav-link {
+            color: #333;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+        }
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .main-content {
+            padding-top: 20px;
+        }
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        /* Estilos adicionados conforme solicitado */
+        .card {
+            transition: transform 0.3s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,.1);
+        }
+        .display-4 {
+            font-size: 2.5rem;
+        }
+
+        /* Correções adicionais para o modal */
+        body.modal-open {
+            overflow: auto !important; /* Permite scroll */
+            position: relative !important; /* Remove position fixed */
+            padding-right: 0 !important;
+        }
+        
+        .modal {
+            z-index: 1060 !important; /* Garante que fica acima de tudo */
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block sidebar collapse">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link {% if request.endpoint == 'main.index' %}active{% endif %}" href="{{ url_for('main.index') }}">
+                                <i class="bi bi-house-door"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'alunos' in request.endpoint %}active{% endif %}" href="{{ url_for('alunos.listar_alunos') }}">
+                                <i class="bi bi-people"></i> Alunos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'professores' in request.endpoint %}active{% endif %}" href="{{ url_for('main.listar_professores') }}">
+                                <i class="bi bi-person-badge"></i> Professores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'agenda' in request.endpoint %}active{% endif %}" href="{{ url_for('main.agenda') }}">
+                                <i class="bi bi-calendar-check"></i> Agenda
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'relatorios' in request.endpoint %}active{% endif %}" href="{{ url_for('main.relatorio_mensal') }}">
+                                <i class="bi bi-graph-up"></i> Relatórios
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link {% if 'contratos' in request.endpoint %}active{% endif %}" href="{{ url_for('main.listar_contratos') }}">
+                                <i class="bi bi-file-earmark-text"></i> Contratos
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Conteúdo principal -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Cabeçalho com menu de usuário -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">{% block header %}{% endblock %}</h1>
+                    
+                    <div class="btn-toolbar mb-2 mb-md-0">
+                        <div class="dropdown">
+                            {% if current_user.is_authenticated %}
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" 
+                                    data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-person-circle"></i> {{ current_user.name }}
+                                <span class="badge bg-{{ 'success' if current_user.role == 'admin' else 'primary' }} ms-1">
+                                    {{ current_user.role }}
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                {% if current_user.role == 'admin' %}
+                                <li><a class="dropdown-item" href="{{ url_for('auth.list_users') }}">
+                                    <i class="bi bi-people"></i> Gerenciar Usuários
+                                </a></li>
+                                {% endif %}
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="bi bi-person"></i> Meu Perfil
+                                </a></li>
+                                <li><a class="dropdown-item" href="#">
+                                    <i class="bi bi-gear"></i> Configurações
+                                </a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Sair
+                                </a></li>
+                            </ul>
+                            {% else %}
+                            <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary">
+                                <i class="bi bi-box-arrow-in-right"></i> Entrar
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mensagens flash -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Conteúdo específico de cada página -->
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+   <!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Versão otimizada - Correção definitiva para modais
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Tooltips (mantido original)
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+        
+        // 2. Menu responsivo (mantido original)
+        const sidebar = document.querySelector('.sidebar');
+        const sidebarToggle = document.createElement('button');
+        sidebarToggle.innerHTML = '<i class="bi bi-list"></i>';
+        sidebarToggle.className = 'btn btn-primary d-md-none fixed-top m-2';
+        sidebarToggle.onclick = () => sidebar.classList.toggle('show');
+        document.body.prepend(sidebarToggle);
+
+        const initializeModals = () => {
+    document.querySelectorAll('.modal').forEach(modal => {
+        // Configuração básica do modal
+        modal.style.zIndex = '1060'; // Garante que fica acima de outros elementos
+
+        // Evento quando o modal abre
+        modal.addEventListener('show.bs.modal', () => {
+            document.body.classList.add('modal-open');
+        });
+
+        // Evento quando o modal fecha
+        modal.addEventListener('hidden.bs.modal', () => {
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = 'auto'; // Restaura o scroll
+        });
+    });
+};
+
+        // Inicializa os modais após pequeno delay para garantir carregamento
+        document.addEventListener('DOMContentLoaded', initializeModals);
+    });
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

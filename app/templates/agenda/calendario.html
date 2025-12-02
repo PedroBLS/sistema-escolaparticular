@@ -1,0 +1,559 @@
+{% extends "base.html" %}
+
+{% block title %}Agenda de Aulas{% endblock %}
+{% block header %}Agenda de Aulas - {{ current_month.strftime('%B %Y') }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <!-- Debug information -->
+        <div class="text-center mb-3 text-muted small">
+            Gerado em: {{ now.strftime('%d/%m/%Y (%A)') }} | 
+            Visualizando: {{ current_month.strftime('%B %Y') }} | 
+            Primeiro dia: {{ current_month.strftime('%A') }}
+        </div>
+
+        <!-- Controles de navegação ÚNICOS -->
+        <div class="d-flex justify-content-between mb-4">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#agendamentoModal">
+                <i class="bi bi-plus-circle"></i> Novo Agendamento
+            </button>
+            <div class="btn-group">
+                <a href="{{ url_for('main.agenda', year=prev_month.year, month=prev_month.month) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-chevron-left"></i> {{ prev_month.strftime('%b') }}
+                </a>
+                <button class="btn btn-outline-primary disabled">
+                    {{ current_month.strftime('%b %Y') }}
+                </button>
+                <a href="{{ url_for('main.agenda', year=next_month.year, month=next_month.month) }}" class="btn btn-outline-secondary">
+                    {{ next_month.strftime('%b') }} <i class="bi bi-chevron-right"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Calendário -->
+        <div class="calendar-container">
+            <div class="calendar-header">
+                {% for day in ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'] %}
+                    <div class="calendar-day-header">{{ day }}</div>
+                {% endfor %}
+            </div>
+            <div class="calendar-grid">
+                {% for week in month_days %}
+                    {% for day in week %}
+                        <div class="calendar-day {% if day.month != current_month.month %}calendar-day-other{% endif %} 
+                            {% if day.day == now.day and day.month == now.month and day.year == now.year %}calendar-day-today{% endif %}"
+                            data-date="{{ day.strftime('%Y-%m-%d') }}">
+                            <div class="day-number">{{ day.day }}</div>
+                            <div class="day-events">
+                                {% for aula in aulas if aula.data_hora.day == day.day and aula.data_hora.month == day.month and aula.data_hora.year == day.year %}
+                                    <div class="event {% if aula.local == 'online' %}event-online{% elif aula.local == 'domicilio' %}event-domicilio{% else %}event-presencial{% endif %}"
+                                        data-bs-toggle="tooltip"
+                                        data-bs-html="true"
+                                        title="<b>{{ aula.aluno.nome }}</b><br>
+                                        {{ aula.data_hora.strftime('%H:%M') }} - {{ (aula.data_hora + timedelta(minutes=aula.duracao)).strftime('%H:%M') }}<br>
+                                        {{ aula.professor.nome }}<br>
+                                        <span class='badge bg-{{ 'success' if aula.local == 'online' else 'warning' if aula.local == 'domicilio' else 'primary' }}'>
+                                            {{ aula.local|capitalize }}
+                                        </span>">
+                                        <div class="event-time">{{ aula.data_hora.strftime('%H:%M') }}</div>
+                                        <div class="event-title">{{ aula.aluno.nome }}</div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Legenda -->
+        <div class="mt-4">
+            <h5>Legenda:</h5>
+            <div class="d-flex flex-wrap gap-2">
+                <span class="badge bg-primary">Presencial</span>
+                <span class="badge bg-warning">Domiciliar</span>
+                <span class="badge bg-success">Online</span>
+                <span class="badge bg-secondary">Outro mês</span>
+                <span class="badge bg-info">Hoje</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Próximas Aulas -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0">Próximas Aulas</h5>
+    </div>
+    <div class="card-body">
+        <div class="list-group">
+            {% for aula in proximas_aulas %}
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">
+                            {{ aula.aluno.nome }}
+                            <small class="text-muted">com {{ aula.professor.nome }}</small>
+                        </h6>
+                        <small class="text-muted">
+                            {{ aula.data_hora.strftime('%d/%m') }} às {{ aula.data_hora.strftime('%H:%M') }}
+                        </small>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="badge bg-{{ 'success' if aula.local == 'online' else 'warning' if aula.local == 'domicilio' else 'primary' }}">
+                                {{ aula.local|capitalize }}
+                            </span>
+                            <span class="badge bg-info">
+                                {{ aula.duracao }} minutos
+                            </span>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ url_for('main.editar_aula', id=aula.id) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ url_for('main.cancelar_aula', id=aula.id) }}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="list-group-item">
+                    Nenhuma aula agendada para os próximos dias
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Agendamento -->
+<div class="modal fade" id="agendamentoModal" tabindex="-1" aria-labelledby="agendamentoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="agendamentoModalLabel">Novo Agendamento de Aula</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="formAgendamento" method="POST" action="{{ url_for('main.novo_agendamento') }}" novalidate>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <!-- Data e Hora -->
+                        <div class="col-md-6">
+                            <label for="dataHora" class="form-label">Data e Hora*</label>
+                            <input type="datetime-local" class="form-control" id="dataHora" name="dataHora" required>
+                            <div class="invalid-feedback">Por favor, selecione uma data e hora válidas.</div>
+                        </div>
+                        
+                        <!-- Duração e Tipo de Aula -->
+                        <div class="col-md-3">
+                            <label for="duracao" class="form-label">Duração*</label>
+                            <select class="form-select" id="duracao" name="duracao" required>
+                                <option value="30">30 minutos</option>
+                                <option value="45">45 minutos</option>
+                                <option value="60" selected>1 hora</option>
+                                <option value="90">1 hora e 30 minutos</option>
+                                <option value="120">2 horas</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="tipoAula" class="form-label">Tipo de Aula*</label>
+                            <select class="form-select" id="tipoAula" name="tipoAula" required>
+                                <option value="individual" selected>Individual</option>
+                                <option value="grupo">Grupo</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Professor com busca dinâmica -->
+                        <div class="col-md-6">
+                            <label for="professor" class="form-label">Professor*</label>
+                            <input type="text" class="form-control" id="professor" name="professor" 
+                                   list="professoresList" autocomplete="off" required>
+                            <datalist id="professoresList">
+                                {% for professor in professores %}
+                                <option value="{{ professor.nome }}" data-id="{{ professor.id }}">{{ professor.nome }}</option>
+                                {% endfor %}
+                            </datalist>
+                            <input type="hidden" id="professor_id" name="professor_id">
+                        </div>
+                        
+                        <!-- Matéria -->
+                        <div class="col-md-6">
+                            <label for="materia" class="form-label">Matéria/Disciplina*</label>
+                            <select class="form-select" id="materia" name="materia_id" required>
+                                {% for materia in materias %}
+                                    <option value="{{ materia.id }}">{{ materia.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Aluno com busca dinâmica -->
+                        <div class="col-md-6" id="alunoField">
+                            <label for="aluno" class="form-label">Aluno*</label>
+                            <input type="text" class="form-control" id="aluno" name="aluno" 
+                                   list="alunosList" autocomplete="off">
+                            <datalist id="alunosList">
+                                {% for aluno in alunos %}
+                                <option value="{{ aluno.nome }}" data-id="{{ aluno.id }}">{{ aluno.nome }}</option>
+                                {% endfor %}
+                            </datalist>
+                            <input type="hidden" id="aluno_id" name="aluno_id">
+                        </div>
+                        
+                        <!-- Grupo -->
+                        <div class="col-md-6" id="grupoField" style="display: none;">
+                            <label for="grupo" class="form-label">Grupo*</label>
+                            <select class="form-select" id="grupo" name="grupo_id">
+                                {% for grupo in grupos %}
+                                    <option value="{{ grupo.id }}">{{ grupo.nome }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <!-- Local da Aula -->
+                        <div class="col-12">
+                            <label class="form-label">Local da Aula*</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="local" id="localOnline" value="online" autocomplete="off" checked>
+                                <label class="btn btn-outline-primary" for="localOnline">Online</label>
+                                
+                                <input type="radio" class="btn-check" name="local" id="localSala" value="sala" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="localSala">Sala</label>
+                                
+                                <input type="radio" class="btn-check" name="local" id="localDomicilio" value="domicilio" autocomplete="off">
+                                <label class="btn btn-outline-primary" for="localDomicilio">Domicílio</label>
+                            </div>
+                        </div>
+                        
+                        <!-- Link para Aula Online -->
+                        <div class="col-12" id="linkOnlineField" style="display: none;">
+                            <label for="linkAula" class="form-label">Link da Aula Online*</label>
+                            <input type="url" class="form-control" id="linkAula" name="linkAula" placeholder="https://meet.google.com/abc-defg-hij">
+                            <small class="text-muted">Link será enviado automaticamente aos participantes</small>
+                        </div>
+                        
+                        <!-- Recorrência Múltipla -->
+                        <div class="col-12 mt-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="recorrenciaAtiva" name="recorrenciaAtiva">
+                                <label class="form-check-label" for="recorrenciaAtiva">Agendamento recorrente</label>
+                            </div>
+                            
+                            <div id="recorrenciaContainer" style="display: none;">
+                                <!-- Container para múltiplas recorrências -->
+                                <div class="recorrencia-item mt-3 p-3 border rounded">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Repetir a cada:</label>
+                                            <select class="form-select" name="recorrenciaTipo[]">
+                                                <option value="semanal">Semana</option>
+                                                <option value="quinzenal">Quinzena</option>
+                                                <option value="mensal">Mês</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Dia da semana:</label>
+                                            <select class="form-select" name="recorrenciaDia[]">
+                                                <option value="0">Segunda</option>
+                                                <option value="1">Terça</option>
+                                                <option value="2">Quarta</option>
+                                                <option value="3">Quinta</option>
+                                                <option value="4">Sexta</option>
+                                                <option value="5">Sábado</option>
+                                                <option value="6">Domingo</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Até:</label>
+                                            <input type="date" class="form-control" name="recorrenciaFim[]">
+                                        </div>
+                                        <div class="col-md-1 d-flex align-items-end">
+                                            <button type="button" class="btn btn-danger btn-sm remove-recorrencia" style="display: none;">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="button" id="addRecorrencia" class="btn btn-sm btn-outline-primary mt-2" style="display: none;">
+                                <i class="bi bi-plus"></i> Adicionar outra recorrência
+                            </button>
+                        </div>
+                        
+                        <!-- Observações -->
+                        <div class="col-12">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <span class="spinner-border spinner-border-sm d-none" id="spinner" role="status" aria-hidden="true"></span>
+                        <span id="submitText">Salvar Agendamento</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .calendar-container {
+        width: 100%;
+        margin-bottom: 20px;
+    }
+
+    .calendar-header {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 5px;
+    }
+
+    .calendar-day {
+        min-height: 100px;
+        border: 1px solid #dee2e6;
+        padding: 5px;
+        background-color: white;
+    }
+
+    .calendar-day-other {
+        background-color: #f8f9fa;
+        color: #6c757d;
+    }
+
+    .calendar-day-today {
+        border: 2px solid #0d6efd;
+        background-color: #e7f1ff;
+    }
+
+    .day-number {
+        text-align: right;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .day-events {
+        overflow-y: auto;
+        max-height: 80px;
+    }
+
+    .event {
+        font-size: 0.8rem;
+        padding: 2px 5px;
+        margin-bottom: 3px;
+        border-radius: 3px;
+        color: white;
+        cursor: pointer;
+    }
+
+    .event-presencial { background-color: #0d6efd; }
+    .event-domicilio { background-color: #fd7e14; }
+    .event-online { background-color: #198754; }
+
+    .event-time {
+        font-weight: bold;
+    }
+
+    .event-title {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* Estilos para o modal */
+    .modal-content {
+        border-radius: 0.5rem;
+    }
+    .modal-header {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+    .btn-check:checked + .btn-outline-primary {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .modal-body {
+        padding: 1.5rem;
+    }
+    .form-switch .form-check-input {
+        width: 2.5em;
+        margin-left: -2.5em;
+    }
+    
+    /* Estilos para recorrência múltipla */
+    .recorrencia-item {
+        background-color: #f8f9fa;
+        margin-bottom: 10px;
+        transition: all 0.3s;
+    }
+    .recorrencia-item:hover {
+        background-color: #e9ecef;
+    }
+    .remove-recorrencia {
+        transition: opacity 0.3s;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Inicialização do modal
+    const initModal = () => {
+        // Controle de seleção de professor e aluno
+        document.getElementById('professor').addEventListener('change', function() {
+            const selected = document.querySelector('#professoresList option[value="'+this.value+'"]');
+            if(selected) document.getElementById('professor_id').value = selected.dataset.id;
+        });
+        
+        document.getElementById('aluno').addEventListener('change', function() {
+            const selected = document.querySelector('#alunosList option[value="'+this.value+'"]');
+            if(selected) document.getElementById('aluno_id').value = selected.dataset.id;
+        });
+
+        // Controle do tipo de aula (individual/grupo)
+        document.getElementById('tipoAula').addEventListener('change', function() {
+            const isGrupo = this.value === 'grupo';
+            document.getElementById('alunoField').style.display = isGrupo ? 'none' : 'block';
+            document.getElementById('grupoField').style.display = isGrupo ? 'block' : 'none';
+        });
+
+        // Controle do link para aula online
+        document.querySelectorAll('input[name="local"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.getElementById('linkOnlineField').style.display = 
+                    this.value === 'online' ? 'block' : 'none';
+                document.getElementById('linkAula').required = this.value === 'online';
+            });
+        });
+
+        // Controle de recorrência múltipla
+        let recCounter = 1;
+        const recorrenciaContainer = document.getElementById('recorrenciaContainer');
+        const addRecorrenciaBtn = document.getElementById('addRecorrencia');
+        const recorrenciaAtiva = document.getElementById('recorrenciaAtiva');
+
+        // Função para adicionar nova recorrência
+        function addRecorrencia() {
+            recCounter++;
+            const template = document.querySelector('.recorrencia-item');
+            const newItem = template.cloneNode(true);
+            
+            // Limpa valores do clone
+            newItem.querySelector('input[name="recorrenciaFim[]"]').value = '';
+            
+            // Mostra o botão de remover
+            newItem.querySelector('.remove-recorrencia').style.display = 'block';
+            
+            // Adiciona ao container
+            recorrenciaContainer.appendChild(newItem);
+            
+            // Atualiza visibilidade dos botões de remover
+            updateRemoveButtons();
+        }
+
+        // Função para atualizar visibilidade dos botões de remover
+        function updateRemoveButtons() {
+            const items = document.querySelectorAll('.recorrencia-item');
+            items.forEach((item, index) => {
+                const removeBtn = item.querySelector('.remove-recorrencia');
+                if (removeBtn) {
+                    removeBtn.style.display = items.length > 1 ? 'block' : 'none';
+                }
+            });
+        }
+
+        // Função para remover recorrência
+        function removeRecorrencia(event) {
+            if (document.querySelectorAll('.recorrencia-item').length > 1) {
+                event.target.closest('.recorrencia-item').remove();
+                updateRemoveButtons();
+            }
+        }
+
+        // Configura eventos
+        function setupRecorrenciaEvents() {
+            // Remove event listeners antigos para evitar duplicação
+            addRecorrenciaBtn.removeEventListener('click', addRecorrencia);
+            document.querySelectorAll('.remove-recorrencia').forEach(btn => {
+                btn.removeEventListener('click', removeRecorrencia);
+            });
+            
+            // Adiciona novos event listeners
+            addRecorrenciaBtn.addEventListener('click', addRecorrencia);
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-recorrencia') || 
+                    e.target.closest('.remove-recorrencia')) {
+                    removeRecorrencia(e);
+                }
+            });
+        }
+
+        // Mostra/oculta recorrência
+        recorrenciaAtiva.addEventListener('change', function() {
+            const show = this.checked;
+            recorrenciaContainer.style.display = show ? 'block' : 'none';
+            addRecorrenciaBtn.style.display = show ? 'block' : 'none';
+            updateRemoveButtons();
+        
+            // Se estiver mostrando, configura os eventos
+            if (show) {
+                setupRecorrenciaEvents();
+            }
+        });
+
+        // Configura eventos iniciais
+        setupRecorrenciaEvents();
+
+        // Validação do formulário
+        document.getElementById('formAgendamento').addEventListener('submit', function(e) {
+            if (!this.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.classList.add('was-validated');
+            } else {
+                // Mostra spinner durante o submit
+                document.getElementById('spinner').classList.remove('d-none');
+                document.getElementById('submitText').textContent = 'Salvando...';
+                document.getElementById('submitBtn').disabled = true;
+            }
+        });
+
+        // Preenche a data mínima como hoje
+        const now = new Date();
+        const today = now.toISOString().slice(0, 16);
+        document.getElementById('dataHora').min = today;
+        
+        // Preenche a data de fim padrão para recorrência (30 dias)
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + 30);
+        document.querySelector('input[name="recorrenciaFim[]"]').valueAsDate = futureDate;
+        document.querySelector('input[name="recorrenciaFim[]"]').min = today.slice(0, 10);
+    }
+
+    // Inicializa quando o modal é aberto
+    document.getElementById('agendamentoModal')?.addEventListener('shown.bs.modal', initModal);
+    
+    // Tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

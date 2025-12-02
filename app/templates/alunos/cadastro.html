@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro de Aluno{% endblock %}
+{% block header %}Cadastro de Aluno{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <!-- Mensagens de flash -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('alunos.cadastro_aluno') }}" id="cadastroForm" novalidate>
+            {{ form.hidden_tag() }}
+            
+            <div class="row g-3">
+                <!-- Coluna 1: Dados do Aluno -->
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-header bg-primary text-white">
+                            <i class="bi bi-person"></i> Dados do Aluno
+                        </div>
+                        <div class="card-body">
+                            <!-- Nome do Aluno -->
+                            <div class="mb-3">
+                                {{ form.nome_aluno.label(class="form-label") }}
+                                {{ form.nome_aluno(class="form-control" + (" is-invalid" if form.nome_aluno.errors else "")) }}
+                                {% for error in form.nome_aluno.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Série -->
+                            <div class="mb-3">
+                                {{ form.serie.label(class="form-label") }}
+                                {{ form.serie(class="form-select" + (" is-invalid" if form.serie.errors else "")) }}
+                                {% for error in form.serie.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coluna 2: Dados do Responsável -->
+                <div class="col-md-8">
+                    <div class="card border-warning">
+                        <div class="card-header bg-warning text-dark">
+                            <i class="bi bi-people"></i> Dados do Responsável
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <!-- Nome do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.nome_responsavel.label(class="form-label") }}
+                                        {{ form.nome_responsavel(class="form-control" + (" is-invalid" if form.nome_responsavel.errors else "")) }}
+                                        {% for error in form.nome_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Email do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.email_responsavel.label(class="form-label") }}
+                                        {{ form.email_responsavel(class="form-control" + (" is-invalid" if form.email_responsavel.errors else "")) }}
+                                        {% for error in form.email_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Telefone do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.telefone_responsavel.label(class="form-label") }}
+                                        {{ form.telefone_responsavel(class="form-control" + (" is-invalid" if form.telefone_responsavel.errors else "")) }}
+                                        {% for error in form.telefone_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Endereço do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.endereco_responsavel.label(class="form-label") }}
+                                        {{ form.endereco_responsavel(class="form-control" + (" is-invalid" if form.endereco_responsavel.errors else "")) }}
+                                        {% for error in form.endereco_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <!-- CPF do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.cpf_responsavel.label(class="form-label") }}
+                                        {{ form.cpf_responsavel(class="form-control" + (" is-invalid" if form.cpf_responsavel.errors else "")) }}
+                                        {% for error in form.cpf_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- RG do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.rg_responsavel.label(class="form-label") }}
+                                        {{ form.rg_responsavel(class="form-control" + (" is-invalid" if form.rg_responsavel.errors else "")) }}
+                                        {% for error in form.rg_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Estado Civil do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.estado_civil_responsavel.label(class="form-label") }}
+                                        {{ form.estado_civil_responsavel(class="form-select" + (" is-invalid" if form.estado_civil_responsavel.errors else "")) }}
+                                        {% for error in form.estado_civil_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                    
+                                    <!-- Nacionalidade do Responsável -->
+                                    <div class="mb-3">
+                                        {{ form.nacionalidade_responsavel.label(class="form-label") }}
+                                        {{ form.nacionalidade_responsavel(class="form-control" + (" is-invalid" if form.nacionalidade_responsavel.errors else ""), value="Brasileira") }}
+                                        {% for error in form.nacionalidade_responsavel.errors %}
+                                            <div class="invalid-feedback d-block">{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Coluna 3: Plano -->
+                <div class="col-12 mt-3">
+                    <div class="card border-success">
+                        <div class="card-header bg-success text-white">
+                            <i class="bi bi-journal-check"></i> Plano Contratado
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                {{ form.plano_adquirido.label(class="form-label") }}
+                                {{ form.plano_adquirido(class="form-select" + (" is-invalid" if form.plano_adquirido.errors else "")) }}
+                                {% for error in form.plano_adquirido.errors %}
+                                    <div class="invalid-feedback d-block">{{ error }}</div>
+                                {% endfor %}
+                                <small class="form-text text-muted">Selecione o plano que será contratado para o aluno.</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Botões -->
+                <div class="col-12 mt-4">
+                    {{ form.submit(class="btn btn-primary btn-lg") }}
+                    <a href="{{ url_for('alunos.listar_alunos') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Voltar
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscaras para os campos
+    $('#cpf_responsavel').mask('000.000.000-00');
+    $('#telefone_responsavel').mask('(00) 00000-0000');
+    $('#rg_responsavel').mask('00.000.000-0');
+    
+    // Remover máscaras antes de enviar
+    $('#cadastroForm').submit(function() {
+        $('#cpf_responsavel').unmask();
+        $('#telefone_responsavel').unmask();
+        $('#rg_responsavel').unmask();
+        return true;
+    });
+});
+</script>
+{% endblock %}

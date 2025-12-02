@@ -1,0 +1,454 @@
+{% extends "base.html" %}
+
+{% block title %}Relatório Mensal{% endblock %}
+{% block header %}Relatório Mensal - {{ mes }}/{{ ano }}{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('main.relatorio_mensal') }}" class="row g-3 mb-4">
+            <div class="col-md-3">
+                <label for="mes" class="form-label">Mês</label>
+                <select class="form-select" id="mes" name="mes">
+                    {% for i, nome in meses %}
+                    <option value="{{ i }}" {% if i == mes|int %}selected{% endif %}>{{ nome }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="ano" class="form-label">Ano</label>
+                <select class="form-select" id="ano" name="ano">
+                    {% for i in range(ano_atual-2, ano_atual+1) %}
+                    <option value="{{ i }}" {% if i == ano|int %}selected{% endif %}>{{ i }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-filter"></i> Filtrar
+                </button>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <a href="{{ url_for('main.relatorio_mensal', mes=mes, ano=ano, formato='pdf') }}" 
+                   class="btn btn-danger w-100" id="export-pdf">
+                    <i class="bi bi-file-earmark-pdf"></i> Exportar PDF
+                </a>
+            </div>
+        </form>
+
+        <!-- Resumo Geral e Financeiro -->
+        <div class="row mb-4">
+            <!-- Resumo Geral -->
+            <div class="col-md-6 mb-3 mb-md-0">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Resumo Geral</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <tbody>
+                                    <tr>
+                                        <th class="w-50">Total de Aulas</th>
+                                        <td class="fw-bold text-end">{{ total_aulas }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Alunos Ativos</th>
+                                        <td class="fw-bold text-end">{{ alunos_ativos }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Professores Ativos</th>
+                                        <td class="fw-bold text-end">{{ professores_ativos }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Horas Ministradas</th>
+                                        <td class="fw-bold text-end">{{ horas_ministradas }}h</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Faturamento Total</th>
+                                        <td class="fw-bold text-end">R$ {{ "%.2f"|format(faturamento_total) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Resumo Financeiro -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Resumo Financeiro</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <tbody>
+                                    <tr>
+                                        <th>Faturamento Total</th>
+                                        <td class="fw-bold text-end">R$ {{ "%.2f"|format(faturamento_total) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Custo com Professores</th>
+                                        <td class="fw-bold text-end">R$ {{ "%.2f"|format(custo_professores) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Custos Fixos</th>
+                                        <td class="fw-bold text-end">R$ {{ "%.2f"|format(custos_fixos) }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Lucro Líquido</th>
+                                        <td class="fw-bold text-end">R$ {{ "%.2f"|format(faturamento_total - custo_professores - custos_fixos) }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alunos por Plano -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Alunos por Plano</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Plano</th>
+                                <th class="text-end">Alunos</th>
+                                <th class="text-end">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plano in alunos_por_plano %}
+                            <tr>
+                                <td>{{ plano.plano_adquirido or 'Não informado' }}</td>
+                                <td class="text-end">{{ plano.total }}</td>
+                                <td class="text-end">{{ "%.1f"|format(plano.percentual) }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aulas por Professor -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Aulas por Professor</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Professor</th>
+                                <th class="text-end">Aulas</th>
+                                <th class="text-end">Horas</th>
+                                <th class="text-end">Valor/Hora</th>
+                                <th class="text-end">Valor Total</th>
+                                <th class="text-end">Custo Total</th>
+                                <th class="text-end">Lucro</th>
+                                <th class="text-end">Alunos</th>
+                                <th class="text-center">Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for professor in aulas_por_professor %}
+                            <tr>
+                                <td>{{ professor.nome }}</td>
+                                <td class="text-end">{{ professor.total_aulas }}</td>
+                                <td class="text-end">{{ professor.horas_ministradas }}h</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(professor.valor_hora) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(professor.valor_gerado) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(professor.custo_total) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(professor.valor_gerado - professor.custo_total) }}</td>
+                                <td class="text-end">{{ professor.alunos_atendidos|length }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseProfessor{{ loop.index }}"
+                                            aria-expanded="false"
+                                            aria-controls="collapseProfessor{{ loop.index }}">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse bg-light" id="collapseProfessor{{ loop.index }}">
+                                <td colspan="9">
+                                    <div class="p-3">
+                                        <h6 class="fw-bold">Alunos Atendidos:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for aluno in professor.alunos_atendidos %}
+                                            <span class="badge bg-secondary d-flex align-items-center">
+                                                {{ aluno.nome }}
+                                                <span class="ms-2 badge bg-white text-dark rounded-pill">
+                                                    {{ aluno.total_aulas }} aula{{ 's' if aluno.total_aulas > 1 else '' }}
+                                                </span>
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Aulas por Aluno -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Aulas por Aluno</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Plano</th>
+                                <th class="text-end">Aulas</th>
+                                <th class="text-end">Horas</th>
+                                <th class="text-end">Valor Total</th>
+                                <th class="text-end">Professores</th>
+                                <th class="text-center">Detalhes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for aluno in aulas_por_aluno %}
+                            <tr>
+                                <td>{{ aluno.nome }}</td>
+                                <td>{{ aluno.plano_adquirido or 'Não informado' }}</td>
+                                <td class="text-end">{{ aluno.total_aulas }}</td>
+                                <td class="text-end">{{ aluno.horas_recebidas }}h</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(aluno.valor_total) }}</td>
+                                <td class="text-end">{{ aluno.professores|length }}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-sm btn-outline-primary" type="button" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#collapseAluno{{ loop.index }}"
+                                            aria-expanded="false"
+                                            aria-controls="collapseAluno{{ loop.index }}">
+                                        <i class="bi bi-chevron-down"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr class="collapse bg-light" id="collapseAluno{{ loop.index }}">
+                                <td colspan="7">
+                                    <div class="p-3">
+                                        <h6 class="fw-bold">Professores:</h6>
+                                        <div class="d-flex flex-wrap gap-2">
+                                            {% for professor in aluno.professores %}
+                                            <span class="badge bg-secondary d-flex align-items-center">
+                                                {{ professor.nome }}
+                                                <span class="ms-2 badge bg-white text-dark rounded-pill">
+                                                    {{ professor.total_aulas }} aula{{ 's' if professor.total_aulas > 1 else '' }}
+                                                </span>
+                                            </span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalhamento Aluno-Professor -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Detalhamento Aluno-Professor</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Aluno</th>
+                                <th>Professor</th>
+                                <th class="text-end">Aulas</th>
+                                <th class="text-end">Horas</th>
+                                <th class="text-end">Valor Aula</th>
+                                <th class="text-end">Valor Total</th>
+                                <th class="text-end">Custo Professor</th>
+                                <th class="text-end">Lucro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for relacao in relacoes_aluno_professor %}
+                            <tr>
+                                <td>{{ relacao.aluno_nome }}</td>
+                                <td>{{ relacao.professor_nome }}</td>
+                                <td class="text-end">{{ relacao.total_aulas }}</td>
+                                <td class="text-end">{{ "%.1f"|format(relacao.total_horas) }}h</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(relacao.valor_aula) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(relacao.valor_total) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(relacao.custo_professor) }}</td>
+                                <td class="text-end">R$ {{ "%.2f"|format(relacao.valor_total - relacao.custo_professor) }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Distribuição por Tipo de Aula -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Distribuição por Tipo</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3 mb-md-0">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0">Por Local</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <tbody>
+                                            {% for local in aulas_por_local %}
+                                            <tr>
+                                                <td>{{ local.local or 'Não informado' }}</td>
+                                                <td class="text-end">{{ local.total }} aula{{ 's' if local.total > 1 else '' }}</td>
+                                                <td class="text-end">{{ "%.1f"|format(local.percentual) }}%</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0">Por Tipo de Aula</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-sm table-hover">
+                                        <tbody>
+                                            {% for tipo in aulas_por_tipo %}
+                                            <tr>
+                                                <td>{{ tipo.tipo_aula or 'Não informado' }}</td>
+                                                <td class="text-end">{{ tipo.total }} aula{{ 's' if tipo.total > 1 else '' }}</td>
+                                                <td class="text-end">{{ "%.1f"|format(tipo.percentual) }}%</td>
+                                            </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        border: none;
+    }
+    .card-header {
+        padding: 0.75rem 1.25rem;
+    }
+    .table-responsive {
+        overflow-x: auto;
+    }
+    .table thead th {
+        white-space: nowrap;
+    }
+    .table-sm td, .table-sm th {
+        padding: 0.5rem;
+    }
+    .badge {
+        font-size: 0.85em;
+        padding: 0.35em 0.65em;
+    }
+    .collapse-row td {
+        padding: 0;
+    }
+    .bg-light {
+        background-color: #f8f9fa!important;
+    }
+    .btn-outline-primary {
+        border-color: #0d6efd;
+        color: #0d6efd;
+    }
+    .btn-outline-primary:hover {
+        background-color: #0d6efd;
+        color: white;
+    }
+    .fw-bold {
+        font-weight: 600;
+    }
+    .text-end {
+        text-align: right;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Botão de exportação PDF
+        const pdfBtn = document.getElementById('export-pdf');
+        if (pdfBtn) {
+            pdfBtn.addEventListener('click', function(e) {
+                const btn = e.currentTarget;
+                const originalHTML = btn.innerHTML;
+                
+                // Mostrar estado de loading
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Gerando PDF...';
+                btn.classList.add('disabled');
+                
+                // Simular tempo de geração (remover em produção)
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('disabled');
+                }, 3000);
+            });
+        }
+
+        // Melhorar acessibilidade dos botões de collapse
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(button => {
+            button.addEventListener('click', function() {
+                const target = this.getAttribute('data-bs-target');
+                const icon = this.querySelector('i');
+                const isExpanded = this.getAttribute('aria-expanded') === 'true';
+                
+                if (icon) {
+                    if (isExpanded) {
+                        icon.classList.remove('bi-chevron-up');
+                        icon.classList.add('bi-chevron-down');
+                    } else {
+                        icon.classList.remove('bi-chevron-down');
+                        icon.classList.add('bi-chevron-up');
+                    }
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}
