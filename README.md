@@ -109,33 +109,6 @@ URL: http://localhost:5000
 
 Admin: admin@escola.com / admin123
 
-📁 Estrutura do Projeto
-text
-impetus-educacional/
-├── app/
-│   ├── __init__.py          # Factory do Flask
-│   ├── models.py            # Modelos do banco de dados
-│   ├── routes.py            # Rotas da aplicação
-│   ├── forms.py             # Formulários WTForms
-│   ├── templates/           # Templates HTML (Jinja2)
-│   │   ├── base.html        # Template base
-│   │   ├── auth/            # Templates de autenticação
-│   │   ├── admin/           # Templates administrativos
-│   │   └── ...
-│   └── static/              # Arquivos estáticos
-│       ├── css/
-│       ├── js/
-│       └── images/
-├── migrations/              # Migrações do Flask-Migrate
-├── .env                     # Variáveis de ambiente (NÃO COMMITAR)
-├── .env.example             # Exemplo de variáveis
-├── .gitignore              # Arquivos ignorados pelo Git
-├── config.py               # Configuração do Flask
-├── initiative_db.py        # Inicialização do banco
-├── requirements.txt        # Dependências do Python
-├── run.py                  # Ponto de entrada
-└── README.md               # Este arquivo
-
 🔐 Credenciais Padrão
 Após executar initiative_db.py, um usuário admin é criado:
 
