@@ -61,5 +61,5 @@ Sistema de gestão para aulas particulares desenvolvido para a empresa **Impetus
 
 1. **Clone o repositório**
 ```bash
-git clone https://github.com/seu-usuario/impetus-educacional.git
+git clone https://github.com/PedroBLS/sistema-escolaparticular.git
 cd impetus-educacional
