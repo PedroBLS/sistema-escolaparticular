@@ -3,55 +3,63 @@
 
 ## 📋 Descrição
 
-Este é um sistema fullstack desenvolvido para a empresa Impetus, especializada em aulas particulares. O projeto visa facilitar o gerenciamento de aulas, agendamentos, pagamentos e interações entre alunos, professores e administradores.
+Sistema de gestão para aulas particulares desenvolvido para a empresa **Impetus**. A plataforma facilita o gerenciamento de alunos, professores, aulas e atividades educacionais, proporcionando uma interface intuitiva para administradores.
 
-Construído com foco em usabilidade e escalabilidade, o sistema inclui dashboards personalizados para acompanhar o progresso e otimizar processos educacionais. O objetivo é fornecer uma plataforma intuitiva que integre funcionalidades essenciais para o ecossistema de aulas particulares, promovendo eficiência e satisfação para todos os usuários.
+**⚠️ ATENÇÃO:** Sistema em fase de desenvolvimento - novas funcionalidades sendo implementadas.
 
+## ✨ Funcionalidades
 
-## 📅 Agendamento Inteligente
-Interface intuitiva para marcar horários disponíveis
+### ✅ Implementadas
+- **Autenticação de Usuários**: Login com roles (admin, professor, aluno)
+- **CRUD de Alunos**: Cadastro, edição e visualização
+- **CRUD de Professores**: Gerenciamento de docentes
+- **Controle de Aulas**: Agendamento e registro
+- **Dashboard Administrativo**: Visão geral do sistema
+- **Geração de Relatórios**: Em PDF com ReportLab
 
-Sistema de conflitos e sobreposições prevenido automaticamente
+### 🚧 Em Desenvolvimento
+- Sistema de pagamentos e financeiro
+- Notificações por e-mail
+- Dashboard para professores e alunos
+- Calendário interativo
+- API REST para integrações
 
-Notificações automáticas por e-mail e no sistema
+## 🛠️ Tecnologias Utilizadas
 
-Calendário integrado com visualização semanal/mensal
+### Backend
+- **Python 3.8+**
+- **Flask 3.0.0** - Framework web
+- **Flask-SQLAlchemy** - ORM para banco de dados
+- **Flask-Migrate** - Migrações de banco de dados
+- **Flask-Login** - Gerenciamento de sessões
+- **Flask-WTF** - Formulários e validação
 
-## 📊 Dashboards Interativos
-Aluno: Cadastrar alunos, perfil do aluno e alunos ativos
+### Banco de Dados
+- **SQLite** (desenvolvimento)
+- **SQLAlchemy** (ORM)
 
-Painel do Professor: Cadastro de porfessores e perfil do professor
+### Frontend
+- **HTML5, CSS3, JavaScript**
+- **Flask-Bootstrap** - Interface responsiva
+- **Jinja2** - Templates
 
-Painel Administrativo: Métricas gerais, faturamento e crescimento.
+### Relatórios
+- **ReportLab** - Geração de PDFs
+- **WeasyPrint** - Conversão HTML para PDF
 
-## 🔐 Segurança e Autenticação
-Sistema de login com JWT (JSON Web Tokens)
+### Outras
+- **python-dotenv** - Variáveis de ambiente
+- **email-validator** - Validação de e-mails
 
-Controle de acesso baseado em roles (aluno, professor, admin)
+## 🚀 Instalação e Configuração
 
-Proteção de rotas e endpoints
+### Pré-requisitos
+- Python 3.8 ou superior
+- pip (gerenciador de pacotes Python)
 
-Senhas criptografadas
+### Passos para Instalação
 
-## 🔔 Notificações em Tempo Real
-Alertas via WebSockets para confirmações de aulas
-
-Lembretes automáticos 24h antes das aulas
-
-Sistema de mensagens interno entre usuários
-
-Notificações de pagamentos e atualizações
-
-## 📈 Relatórios e Análises
-Visualização de dados de forma interativa
-
-Análise de faturamento e métricas financeiras
-
-Exportação de dados em PDF/Excel
-
-
-## 🚀 Tecnologias
-- **Backend**: Python, Flask/Django
-- **Banco de Dados**: SQLite (desenvolvimento)
-- **Frontend**: HTML, CSS, JavaScript, Jinja2
-- **ORM**: SQLAlchemy
+1. **Clone o repositório**
+```bash
+git clone https://github.com/seu-usuario/impetus-educacional.git
+cd impetus-educacional
